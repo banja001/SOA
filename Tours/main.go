@@ -23,7 +23,7 @@ func initDB() *gorm.DB {
 		return nil
 	}
 	database.AutoMigrate(&model.Tour{}) // pravi tabele
-	database.Exec("INSERT INTO tours VALUES ('aec7e123-233d-4a09-a289-75308ea5b7e6', 'Marko Markovic')")
+	//database.Exec("INSERT INTO tours VALUES ('aec7e123-233d-4a09-a289-75308ea5b7e6', 'Marko Markovic')")
 	return database
 }
 
