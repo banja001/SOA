@@ -6,16 +6,16 @@ import (
 )
 
 type TourKeypoint struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name" gorm:"not null;type:string"`
-	Description string 
-	Image string
-	Latitude float64
-	Longitude float64
-	TourID uuid.UUID
-	Secret string
-	PositionInTour int
-	PublicPointID uuid.UUID
+	ID   uuid.UUID `json:"Id"`
+	Name string    `json:"Name" gorm:"not null;type:string"`
+	Description string `json:"Description"`
+	Image string `json:"Image"`
+	Latitude float64 `json:"Latitude"`
+	Longitude float64 `json:"Longitude"`
+	TourID uuid.UUID `json:"TourId"`
+	Secret string `json:"Secret"`
+	PositionInTour int32 `json:"PositionInTour"`
+	PublicPointID uuid.UUID `json:"PublicPointId"`
 }
 
 func (tourKeypoint *TourKeypoint) BeforeCreate(scope *gorm.DB) error {

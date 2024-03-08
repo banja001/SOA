@@ -22,20 +22,32 @@ func initDB() *gorm.DB {
 		print(err)
 		return nil
 	}
-	database.AutoMigrate(&model.Tour{}) // pravi tabele
-	database.Exec("INSERT INTO tours VALUES ('aec7e123-233d-4a09-a289-75308ea5b7e6', 'Marko Markovic')")
+	database.AutoMigrate(&model.Tour{}) 
+	database.AutoMigrate(&model.TourKeypoint{}) 
+	//database.Exec("INSERT INTO tours VALUES ('aec7e123-233d-4a09-a289-75308ea5b7e6', 'Marko Markovic')")
 	return database
 }
 
-func startServer(handler *handler.TourHandler) {
+func startServer(handler *handler.TourHandler, database *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
 	router.HandleFunc("/tours", handler.Create).Methods("POST")
+	
+	initTourKeypoints(router, database)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":80", router))
+}
+
+func initTourKeypoints(router *mux.Router, database *gorm.DB){
+	repo := &repo.TourKeypointRepository{DatabaseConnection: database}
+	service := &service.TourKeypointService{TourKeypointRepo: repo}
+	handler := &handler.TourKeypointHandler{TourKeypointService: service}
+
+	router.HandleFunc("/tourKeypoints/{id}", handler.Get).Methods("GET")
+	router.HandleFunc("/tourKeypoints", handler.Create).Methods("POST")
 }
 
 func main() {
@@ -48,5 +60,5 @@ func main() {
 	service := &service.TourService{TourRepo: repo}
 	handler := &handler.TourHandler{TourService: service}
 
-	startServer(handler)
+	startServer(handler, database)
 }
