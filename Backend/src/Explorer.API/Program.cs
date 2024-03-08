@@ -2,6 +2,7 @@ using Explorer.API.Startup;
 using Explorer.Stakeholders.Core.Domain;
 
 using Explorer.Stakeholders.Core.UseCases;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,11 @@ builder.Services.RegisterModules();
 builder.Services.AddSingleton<PeriodicHostedService>();
 builder.Services.AddHostedService(
     provider => provider.GetRequiredService<PeriodicHostedService>());
+
+builder.Services.AddHttpClient("toursMicroservice", (serviceProvider, client) =>
+{
+    client.BaseAddress = new Uri("http://localhost:80");
+});
 
 
 builder.Services.AddSignalR(o =>

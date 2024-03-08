@@ -68,5 +68,6 @@ namespace Explorer.Tours.Core.UseCases
            return tourKeyPointDtos;
         }
 
+        
     }
 }
