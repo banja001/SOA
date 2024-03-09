@@ -25,17 +25,14 @@ func initDB() *gorm.DB {
 	database.AutoMigrate(&model.Tour{})
 	database.AutoMigrate(&model.TourKeypoint{})
 
-	//database.Exec("INSERT INTO tours VALUES ('aec7e123-233d-4a09-a289-75308ea5b7e6', 'Marko Markovic')")
 	return database
 }
 
-func startServer(handler *handler.TourHandler, database *gorm.DB) {
+func startServer(database *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/tours", handler.Create).Methods("POST")
-
 	initTourKeypoints(router, database)
+	initTours(router, database)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
@@ -51,15 +48,20 @@ func initTourKeypoints(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/tourKeypoints", handler.Create).Methods("POST")
 }
 
+func initTours(router *mux.Router, database *gorm.DB) {
+	repo := &repo.TourRepository{DatabaseConnection: database}
+	service := &service.TourService{TourRepo: repo}
+	handler := &handler.TourHandler{TourService: service}
+
+	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
+	router.HandleFunc("/tours", handler.Create).Methods("POST")
+}
+
 func main() {
 	database := initDB()
 	if database == nil {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-	repo := &repo.TourRepository{DatabaseConnection: database}
-	service := &service.TourService{TourRepo: repo}
-	handler := &handler.TourHandler{TourService: service}
-
-	startServer(handler, database)
+	startServer(database)
 }

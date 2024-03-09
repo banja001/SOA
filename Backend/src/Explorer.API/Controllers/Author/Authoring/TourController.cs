@@ -1,8 +1,14 @@
 ﻿using Explorer.BuildingBlocks.Core.UseCases;
 using Explorer.Tours.API.Dtos;
+using Explorer.Tours.API.MicroserviceDtos;
 using Explorer.Tours.API.Public.Authoring;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System.Numerics;
+using Explorer.Tours.Core.Domain.Tours;
 
 namespace Explorer.API.Controllers.Author.Authoring
 {
@@ -11,10 +17,12 @@ namespace Explorer.API.Controllers.Author.Authoring
     public class TourController : BaseApiController
     {
         private readonly ITourService _tourService;
+        private readonly IHttpClientFactory _factory;
 
-        public TourController(ITourService tourService)
+        public TourController(ITourService tourService, IHttpClientFactory factory)
         {
             _tourService = tourService;
+            _factory = factory;
         }
 
         [HttpGet]
@@ -48,10 +56,40 @@ namespace Explorer.API.Controllers.Author.Authoring
 
         [AllowAnonymous]
         [HttpGet("{id:int}")]
-        public ActionResult<TourDto> Get(int id)
+        public async Task<TourDto> Get(int id)
         {
-            var result = _tourService.Get(id);
-            return CreateResponse(result);
+            //var result = _tourService.Get(id);
+            //return CreateResponse(result);
+            //byte[] bytes = BitConverter.GetBytes(id);
+   
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.GetAsync("tours/7935bc3e-f284-4b4f-ab93-31ef79b045fc");
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            dynamic jsonObject = JsonConvert.DeserializeObject(jsonResponse);
+            //BigInteger tourId = Guid.Parse((string)jsonObject.Id).GetHashCode();
+            int tourId = Guid.Parse((string)jsonObject.Id).GetHashCode();
+
+            TourDto tourDto = new TourDto
+            {
+                Id = tourId,
+                Name = jsonObject.Name,
+                Description = jsonObject.Description,
+                Difficulty = jsonObject.Difficulty,
+                Tags = jsonObject.Tags != null ? jsonObject.Tags.ToObject<List<string>>() : new List<string>(),
+                Status = jsonObject.Status,
+                Price = jsonObject.Price,
+                AuthorId = jsonObject.AuthorId,
+                Equipment = jsonObject.Equipment != null ? jsonObject.Equipment.ToObject<int[]>() : null,
+                DistanceInKm = jsonObject.DistanceInKm,
+                ArchivedDate = jsonObject.ArchivedDate != null ? jsonObject.ArchivedDate.ToObject<DateTime?>() : null,
+                PublishedDate = jsonObject.PublishedDate != null ? jsonObject.PublishedDate.ToObject<DateTime?>() : null,
+                Durations = null,
+                KeyPoints =  null,
+                Image = jsonObject.Image != null ? new Uri((string)jsonObject.Image) : null
+           
+            };
+            //JsonConvert.PopulateObject(jsonResponse, tourDto); // ne radi
+            return tourDto;
         }
 
         [HttpPut("publish/{id:int}")]
