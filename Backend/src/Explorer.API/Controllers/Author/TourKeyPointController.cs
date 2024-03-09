@@ -8,6 +8,8 @@ using Explorer.Tours.Core.UseCases.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 
 namespace Explorer.API.Controllers.Author
@@ -41,29 +43,50 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<TourKeypointDto> Get(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<ActionResult<TourKeypointDto>> Get(Guid id)
         {
             //var result = _tourKeyPointService.Get(id);
 
             var client = _factory.CreateClient("toursMicroservice");
-            using HttpResponseMessage response = await client.GetAsync("tourKeypoints/6511d3bc-155f-4c3a-9275-dbb852e3e6fd");
+            using HttpResponseMessage response = await client.GetAsync("tourKeypoints/" + id.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"RESPONSE {jsonResponse}\n");
 
             TourKeypointDto tourKeyPointDto =
                 JsonSerializer.Deserialize<TourKeypointDto>(jsonResponse);
 
-            return tourKeyPointDto;
+            return Ok(tourKeyPointDto);
         }
 
         [HttpPost]
-        public ActionResult<TourKeyPointDto> Create([FromBody] TourKeyPointDto tourKeyPoint)
+        public async Task<ActionResult> Create([FromBody] TourKeypointDto tourKeyPoint)
         {
-            var result = _tourKeyPointService.Create(tourKeyPoint);
-           
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Create(tourKeyPoint);
+
+            var client = _factory.CreateClient("toursMicroservice");
+            using StringContent jsonContent = new(
+                JsonSerializer.Serialize(tourKeyPoint),
+                Encoding.UTF8,
+                "application/json");
+
+            using HttpResponseMessage response = await client.PostAsync(
+                "/tourKeypoints",
+                jsonContent);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
 
