@@ -19,7 +19,23 @@ func (service *TourKeypointService) Find(id string) (*model.TourKeypoint, error)
 }
 
 func (service *TourKeypointService) Create(tourKeypoint *model.TourKeypoint) error {
-	err := service.TourKeypointRepo.CreateTourKeypoint(tourKeypoint)
+	err := service.TourKeypointRepo.Create(tourKeypoint)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *TourKeypointService) Update(tourKeypoint *model.TourKeypoint) error {
+	err := service.TourKeypointRepo.Update(tourKeypoint)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *TourKeypointService) Delete(id string) error {
+	err := service.TourKeypointRepo.Delete(id)
 	if err != nil {
 		return err
 	}

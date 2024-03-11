@@ -17,7 +17,7 @@ builder.Services.AddSingleton<PeriodicHostedService>();
 builder.Services.AddHostedService(
     provider => provider.GetRequiredService<PeriodicHostedService>());
 
-builder.Services.AddHttpClient("toursMicroservice", (serviceProvider, client) =>
+builder.Services.AddHttpClient("toursMicroservice", (client) =>
 {
     client.BaseAddress = new Uri("http://localhost:80");
 });

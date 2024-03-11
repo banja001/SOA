@@ -43,8 +43,8 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
-        [HttpGet("{id:Guid}")]
-        public async Task<ActionResult<TourKeypointDto>> Get(Guid id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<TourKeypointDto>> Get(int id)
         {
             //var result = _tourKeyPointService.Get(id);
 
@@ -57,26 +57,22 @@ namespace Explorer.API.Controllers.Author
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
 
-            TourKeypointDto tourKeyPointDto =
-                JsonSerializer.Deserialize<TourKeypointDto>(jsonResponse);
+            TourKeyPointDto tourKeyPointDto =
+                JsonSerializer.Deserialize<TourKeyPointDto>(jsonResponse);
 
             return Ok(tourKeyPointDto);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] TourKeypointDto tourKeyPoint)
+        public async Task<ActionResult> Create([FromBody] TourKeyPointDto tourKeyPoint)
         {
             //var result = _tourKeyPointService.Create(tourKeyPoint);
 
             var client = _factory.CreateClient("toursMicroservice");
-            using StringContent jsonContent = new(
-                JsonSerializer.Serialize(tourKeyPoint),
-                Encoding.UTF8,
-                "application/json");
 
-            using HttpResponseMessage response = await client.PostAsync(
-                "/tourKeypoints",
-                jsonContent);
+            using HttpResponseMessage response = await client.PostAsJsonAsync(
+                "/tourKeypoints/create",
+                tourKeyPoint);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -91,18 +87,44 @@ namespace Explorer.API.Controllers.Author
 
 
 
-        [HttpPut("{id:int}")]
-        public ActionResult<TourKeyPointDto> Update([FromBody] TourKeyPointDto tourKeyPoint)
+        [HttpPut]
+        public async Task<ActionResult> Update([FromBody] TourKeyPointDto tourKeyPoint)
         {
-            var result = _tourKeyPointService.Update(tourKeyPoint);
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Update(tourKeyPoint);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+
+
+            using HttpResponseMessage response = await client.PutAsJsonAsync(
+                "/tourKeypoints/update",
+                tourKeyPoint);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = _tourKeyPointService.Delete(id);
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Delete(id);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.DeleteAsync("tourKeypoints/delete/" + id.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
 
         }
 

@@ -29,9 +29,9 @@ type Tour struct {
 	ID            uuid.UUID      `json:"id" gorm:"primary_key"`
 	Name          string         `json:"name" gorm:"not null;type:string"`
 	Description   string         `json:"description" gorm:"not null;type:string"`
-	Difficulty    TourDifficulty `json:"difficulty" gorm:"type:enum('Beginner', 'Intermediate', 'Advanced', 'Pro')"`
+	//Difficulty    TourDifficulty `json:"difficulty" gorm:"type:enum('Beginner', 'Intermediate', 'Advanced', 'Pro')"`
 	Tags          []string       `json:"tags" gorm:"not null;type:string"`
-	Status        TourStatus     `json:"status" gorm:"type:enum('Draft', 'Published', 'Archived', 'TouristMade')"`
+	//Status        TourStatus     `json:"status" gorm:"type:enum('Draft', 'Published', 'Archived', 'TouristMade')"`
 	Price         float64        `json:"price"`
 	AuthorId      int            `json:"authorId"`
 	Equipment     []int          `json:"equipment" gorm:"type:string"`
