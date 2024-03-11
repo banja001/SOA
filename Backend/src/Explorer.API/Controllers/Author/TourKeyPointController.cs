@@ -8,6 +8,8 @@ using Explorer.Tours.Core.UseCases.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 
 namespace Explorer.API.Controllers.Author
@@ -42,44 +44,87 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpGet("{id:int}")]
-        public async Task<TourKeypointDto> Get(int id)
+        public async Task<ActionResult<TourKeypointDto>> Get(int id)
         {
             //var result = _tourKeyPointService.Get(id);
 
             var client = _factory.CreateClient("toursMicroservice");
-            using HttpResponseMessage response = await client.GetAsync("tourKeypoints/6511d3bc-155f-4c3a-9275-dbb852e3e6fd");
+            using HttpResponseMessage response = await client.GetAsync("tourKeypoints/" + id.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"RESPONSE {jsonResponse}\n");
 
-            TourKeypointDto tourKeyPointDto =
-                JsonSerializer.Deserialize<TourKeypointDto>(jsonResponse);
+            TourKeyPointDto tourKeyPointDto =
+                JsonSerializer.Deserialize<TourKeyPointDto>(jsonResponse);
 
-            return tourKeyPointDto;
+            return Ok(tourKeyPointDto);
         }
 
         [HttpPost]
-        public ActionResult<TourKeyPointDto> Create([FromBody] TourKeyPointDto tourKeyPoint)
+        public async Task<ActionResult> Create([FromBody] TourKeyPointDto tourKeyPoint)
         {
-            var result = _tourKeyPointService.Create(tourKeyPoint);
-           
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Create(tourKeyPoint);
+
+            var client = _factory.CreateClient("toursMicroservice");
+
+            using HttpResponseMessage response = await client.PostAsJsonAsync(
+                "/tourKeypoints/create",
+                tourKeyPoint);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
 
 
-        [HttpPut("{id:int}")]
-        public ActionResult<TourKeyPointDto> Update([FromBody] TourKeyPointDto tourKeyPoint)
+        [HttpPut]
+        public async Task<ActionResult> Update([FromBody] TourKeyPointDto tourKeyPoint)
         {
-            var result = _tourKeyPointService.Update(tourKeyPoint);
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Update(tourKeyPoint);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+
+
+            using HttpResponseMessage response = await client.PutAsJsonAsync(
+                "/tourKeypoints/update",
+                tourKeyPoint);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = _tourKeyPointService.Delete(id);
-            return CreateResponse(result);
+            //var result = _tourKeyPointService.Delete(id);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.DeleteAsync("tourKeypoints/delete/" + id.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
 
         }
 

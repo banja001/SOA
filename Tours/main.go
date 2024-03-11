@@ -22,9 +22,14 @@ func initDB() *gorm.DB {
 		print(err)
 		return nil
 	}
-	database.AutoMigrate(&model.Tour{})
-	database.AutoMigrate(&model.TourKeypoint{})
-
+	err = database.AutoMigrate(&model.Tour{})
+	if err != nil {
+		log.Fatal("Error while running migration for tour")
+	}
+	err = database.AutoMigrate(&model.TourKeypoint{})
+	if err != nil {
+		log.Fatal("Error while running migration for tour keypoints")
+	}
 	return database
 }
 
@@ -45,7 +50,9 @@ func initTourKeypoints(router *mux.Router, database *gorm.DB) {
 	handler := &handler.TourKeypointHandler{TourKeypointService: service}
 
 	router.HandleFunc("/tourKeypoints/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/tourKeypoints", handler.Create).Methods("POST")
+	router.HandleFunc("/tourKeypoints/create", handler.Create).Methods("POST")
+	router.HandleFunc("/tourKeypoints/update", handler.Update).Methods("PUT")
+	router.HandleFunc("/tourKeypoints/delete/{id}", handler.Delete).Methods("DELETE")
 }
 
 func initTours(router *mux.Router, database *gorm.DB) {

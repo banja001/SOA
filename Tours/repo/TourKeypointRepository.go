@@ -19,8 +19,26 @@ func (repo *TourKeypointRepository) FindById(id string) (model.TourKeypoint, err
 	return tourKeypoint, nil
 }
 
-func (repo *TourKeypointRepository) CreateTourKeypoint(tourKeypoint *model.TourKeypoint) error {
+func (repo *TourKeypointRepository) Create(tourKeypoint *model.TourKeypoint) error {
 	dbResult := repo.DatabaseConnection.Create(tourKeypoint)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *TourKeypointRepository) Update(tourKeypoint *model.TourKeypoint) error {
+	dbResult := repo.DatabaseConnection.Updates(tourKeypoint)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *TourKeypointRepository) Delete(id string) error {
+	dbResult := repo.DatabaseConnection.Unscoped().Delete(&model.TourKeypoint{}, "id = ?", id)
 	if dbResult.Error != nil {
 		return dbResult.Error
 	}
