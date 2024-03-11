@@ -1,14 +1,11 @@
 package model
 
 import (
-	"encoding/json"
+	"database/sql/driver"
 	"errors"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type TagsArray []string
@@ -67,6 +64,36 @@ func (ints *IntArray) Scan(value interface{}) error {
 	return nil
 }
 
+func (r IntArray) Value() (driver.Value, error) {
+	var strArray []string
+	for _, v := range r {
+		strArray = append(strArray, strconv.Itoa(v))
+	}
+	return "{" + strings.Join(strArray, ",") + "}", nil
+}
+
+func (r TagsArray) Value() (driver.Value, error) {
+	return "{" + strings.Join(r, ",") + "}", nil
+}
+
+type Tour struct {
+	ID            int            `json:"Id" gorm:"primary_key"`
+	Name          string         `json:"Name" gorm:"not null;type:text"`
+	Description   string         `json:"Description" gorm:"not null;type:text"`
+	Difficulty    TourDifficulty `json:"Difficulty" gorm:"type:integer"`
+	Tags          TagsArray      `json:"Tags" gorm:"not null;type:text[]"`
+	Status        TourStatus     `json:"Status" gorm:"type:integer"`
+	Price         float64        `json:"Price"`
+	AuthorId      int            `json:"AuthorId"`
+	Equipment     IntArray       `json:"Equipment" gorm:"type:integer[]"`
+	DistanceInKm  float64        `json:"DistanceInKm"`
+	ArchivedDate  *time.Time     `json:"ArchivedDate"`  //?
+	PublishedDate *time.Time     `json:"PublishedDate"` //?
+	Durations     []TourDuration `json:"Durations" gorm:"-"`
+	KeyPoints     []TourKeypoint `json:"KeyPoints" gorm:"-"`
+	Image         string         `json:"Image" gorm:"type:text"` //?
+}
+
 type TourStatus int
 
 const (
@@ -84,57 +111,3 @@ const (
 	Advanced
 	Pro
 )
-
-type TourDuration struct {
-	TimeInSeconds  uint
-	Transportation TransportationType
-}
-
-func (durations *TourDuration) Scan(value interface{}) error {
-	if value == nil {
-		*durations = TourDuration{}
-		return nil
-	}
-
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("failed to scan durations: unexpected type")
-	}
-
-	if err := json.Unmarshal(bytes, durations); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type TransportationType int
-
-const (
-	Walking TransportationType = iota
-	Bicycle
-	Car
-)
-
-type Tour struct {
-	ID            uuid.UUID      `json:"Id" gorm:"primary_key"`
-	Name          string         `json:"Name" gorm:"not null;type:text"`
-	Description   string         `json:"Description" gorm:"not null;type:text"`
-	Difficulty    TourDifficulty `json:"Difficulty" gorm:"type:integer"`
-	Tags          TagsArray      `json:"Tags" gorm:"not null;type:text[]"`
-	Status        TourStatus     `json:"Status" gorm:"type:integer"`
-	Price         float64        `json:"Price"`
-	AuthorId      int            `json:"AuthorId"`
-	Equipment     IntArray       `json:"Equipment" gorm:"type:integer[]"`
-	DistanceInKm  float64        `json:"DistanceInKm"`
-	ArchivedDate  *time.Time     `json:"ArchivedDate"`                //?
-	PublishedDate *time.Time     `json:"PublishedDate"`               //?
-	Durations     TourDuration   `json:"Durations" gorm:"type:jsonb"` //[]TourDuration
-	//KeyPoints     []TourKeyPoint `gorm:"foreignKey:TourID"`
-	Image string `json:"Image" gorm:"type:text"` //?
-}
-
-func (tour *Tour) BeforeCreate(scope *gorm.DB) error {
-	tour.ID = uuid.New()
-	return nil
-}

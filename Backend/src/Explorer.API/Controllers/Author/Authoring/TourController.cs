@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Numerics;
 using Explorer.Tours.Core.Domain.Tours;
+using Newtonsoft.Json.Serialization;
+using System.Text;
 
 namespace Explorer.API.Controllers.Author.Authoring
 {
@@ -32,13 +34,32 @@ namespace Explorer.API.Controllers.Author.Authoring
             return CreateResponse(result);
         }
 
-
         [HttpPost]
-        public ActionResult<TourDto> Create([FromBody] TourDto tour)
+        public async Task<ActionResult> Post([FromBody] TourDto tourDto)
         {
-            var result = _tourService.Create(tour);
-            return CreateResponse(result);
+            //    var result = _tourService.Create(tour);
+            //    return CreateResponse(result);
+            try
+            {
+                var client = _factory.CreateClient("toursMicroservice");
+                var jsonPayload = System.Text.Json.JsonSerializer.Serialize(tourDto);
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                using var response = await client.PostAsync("tours", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
 
         [HttpPut("{id:int}")]
         public ActionResult<TourDto> Update([FromBody] TourDto tour)
@@ -60,35 +81,11 @@ namespace Explorer.API.Controllers.Author.Authoring
         {
             //var result = _tourService.Get(id);
             //return CreateResponse(result);
-            //byte[] bytes = BitConverter.GetBytes(id);
    
             var client = _factory.CreateClient("toursMicroservice");
-            using HttpResponseMessage response = await client.GetAsync("tours/7935bc3e-f284-4b4f-ab93-31ef79b045fc");
+            using HttpResponseMessage response = await client.GetAsync("tours/" + id);
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            dynamic jsonObject = JsonConvert.DeserializeObject(jsonResponse);
-            //BigInteger tourId = Guid.Parse((string)jsonObject.Id).GetHashCode();
-            int tourId = Guid.Parse((string)jsonObject.Id).GetHashCode();
-
-            TourDto tourDto = new TourDto
-            {
-                Id = tourId,
-                Name = jsonObject.Name,
-                Description = jsonObject.Description,
-                Difficulty = jsonObject.Difficulty,
-                Tags = jsonObject.Tags != null ? jsonObject.Tags.ToObject<List<string>>() : new List<string>(),
-                Status = jsonObject.Status,
-                Price = jsonObject.Price,
-                AuthorId = jsonObject.AuthorId,
-                Equipment = jsonObject.Equipment != null ? jsonObject.Equipment.ToObject<int[]>() : null,
-                DistanceInKm = jsonObject.DistanceInKm,
-                ArchivedDate = jsonObject.ArchivedDate != null ? jsonObject.ArchivedDate.ToObject<DateTime?>() : null,
-                PublishedDate = jsonObject.PublishedDate != null ? jsonObject.PublishedDate.ToObject<DateTime?>() : null,
-                Durations = null,
-                KeyPoints =  null,
-                Image = jsonObject.Image != null ? new Uri((string)jsonObject.Image) : null
-           
-            };
-            //JsonConvert.PopulateObject(jsonResponse, tourDto); // ne radi
+            TourDto tourDto = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
             return tourDto;
         }
 
