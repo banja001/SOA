@@ -61,7 +61,8 @@ func initTours(router *mux.Router, database *gorm.DB) {
 	handler := &handler.TourHandler{TourService: service}
 
 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/tours", handler.Create).Methods("POST")
+	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
+	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
 }
 
 func main() {

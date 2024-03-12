@@ -11,6 +11,7 @@ using System.Numerics;
 using Explorer.Tours.Core.Domain.Tours;
 using Newtonsoft.Json.Serialization;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Explorer.API.Controllers.Author.Authoring
 {
@@ -28,45 +29,53 @@ namespace Explorer.API.Controllers.Author.Authoring
         }
 
         [HttpGet]
-        public ActionResult<PagedResult<TourDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<List<TourDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _tourService.GetPaged(page, pageSize);
-            return CreateResponse(result);
+            //var result = _tourService.GetPaged(page, pageSize);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.GetAsync("tours");
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            List<TourDto> tourDtos = System.Text.Json.JsonSerializer.Deserialize<List<TourDto>>(jsonResponse);
+            return tourDtos;
         }
+
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] TourDto tourDto)
+        public async Task<ActionResult> Create([FromBody] TourDto tourDto)
         {
-            //    var result = _tourService.Create(tour);
-            //    return CreateResponse(result);
-            try
-            {
-                var client = _factory.CreateClient("toursMicroservice");
-                var jsonPayload = System.Text.Json.JsonSerializer.Serialize(tourDto);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                using var response = await client.PostAsync("tours", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return StatusCode((int)response.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+            //var result = _tourService.Create(tour);
 
+            var client = _factory.CreateClient("toursMicroservice");
+
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/tours/create",tourDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
+        }
 
         [HttpPut("{id:int}")]
-        public ActionResult<TourDto> Update([FromBody] TourDto tour)
+        public async Task<ActionResult> Update(int id, [FromBody] TourDto tourDto)
         {
-            var result = _tourService.Update(tour);
-            return CreateResponse(result);
+            //var result = _tourService.Update(tour);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/tours/update",tourDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
+
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
@@ -80,7 +89,6 @@ namespace Explorer.API.Controllers.Author.Authoring
         public async Task<TourDto> Get(int id)
         {
             //var result = _tourService.Get(id);
-            //return CreateResponse(result);
    
             var client = _factory.CreateClient("toursMicroservice");
             using HttpResponseMessage response = await client.GetAsync("tours/" + id);

@@ -11,19 +11,43 @@ type TourRepository struct {
 }
 
 func (repo *TourRepository) FindById(id string) (model.Tour, error) {
-	tour := model.Tour{}
+	var tour model.Tour
 	dbResult := repo.DatabaseConnection.First(&tour, "id = ?", id)
-	if dbResult != nil {
+	if dbResult.Error != nil {
 		return tour, dbResult.Error
 	}
+	var keypoints []model.TourKeypoint
+	dbResult = repo.DatabaseConnection.Where("tour_id = ?", tour.ID).Find(&keypoints)
+	if dbResult.Error != nil {
+		return tour, dbResult.Error
+	}
+	tour.KeyPoints = keypoints
+
 	return tour, nil
 }
 
-func (repo *TourRepository) CreateTour(tour *model.Tour) error {
+func (repo *TourRepository) Create(tour *model.Tour) (*model.Tour, error) {
 	dbResult := repo.DatabaseConnection.Create(tour)
 	if dbResult.Error != nil {
-		return dbResult.Error
+		return nil, dbResult.Error
 	}
 	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
+	return tour, nil
+}
+
+func (repo *TourRepository) FindAll() ([]model.Tour, error) {
+	var tours []model.Tour
+	dbResult := repo.DatabaseConnection.Find(&tours)
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+	for i := range tours {
+		var keypoints []model.TourKeypoint
+		dbResult := repo.DatabaseConnection.Where("tour_id = ?", tours[i].ID).Find(&keypoints)
+		if dbResult.Error != nil {
+			return nil, dbResult.Error
+		}
+		tours[i].KeyPoints = keypoints
+	}
+	return tours, nil
 }

@@ -15,7 +15,7 @@ type TourHandler struct {
 
 func (handler *TourHandler) Get(writer http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
-	tour, err := handler.TourService.FindTour(id)
+	tour, err := handler.TourService.Find(id)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
@@ -33,12 +33,32 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.TourService.Create(&tour)
+
+	createdTour, err := handler.TourService.Create(&tour)
 	if err != nil {
 		println("Error while creating a new tour")
 		writer.WriteHeader(http.StatusExpectationFailed)
 		return
 	}
-	writer.WriteHeader(http.StatusCreated)
+
 	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(writer).Encode(createdTour); err != nil {
+		println("Error while encoding tour to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (handler *TourHandler) GetAll(writer http.ResponseWriter, req *http.Request) {
+	tours, err := handler.TourService.GetAll()
+	writer.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(tours)
 }
