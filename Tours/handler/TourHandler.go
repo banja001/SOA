@@ -85,3 +85,17 @@ func (handler *TourHandler) Update(writer http.ResponseWriter, req *http.Request
 		return
 	}
 }
+
+func (handler *TourHandler) GetByAuthorId(writer http.ResponseWriter, req *http.Request) {
+	id := mux.Vars(req)["id"]
+	tours, err := handler.TourService.GetByAuthorId(id)
+	writer.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(tours)
+}

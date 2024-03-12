@@ -39,6 +39,7 @@ export class TourFormComponent implements OnInit {
     keyPoints: [],
     image: 'https://media.istockphoto.com/id/904172104/photo/weve-made-it-all-this-way-i-am-proud.jpg?s=612x612&w=0&k=20&c=MewnsAhbeGRcMBN9_ZKhThmqPK6c8nCT8XYk5ZM_hdg='
   };
+  tourId: number
 
   showFieldWalk: boolean = false;
   showFieldBicycle: boolean = false;
@@ -106,6 +107,7 @@ export class TourFormComponent implements OnInit {
       this.service.getTour(parseInt(params['id'])).subscribe({
         next: (result: Tour) => {
           this.tour = result;
+          console.log(this.tour)
           this.loadCheckpointsToMap();
         }
       });
@@ -129,26 +131,26 @@ export class TourFormComponent implements OnInit {
       case TourCreationMode.Create:
         this.constructTour()
         this.service.createTour(this.tour).subscribe({
-          next: (result: Tour) => {
-            this.router.navigate([`keypoints/create/${result.id}/0`]);
+          next: (result: any) => {
+            this.router.navigate([`keypoints/create/${result.Id}/0`]);
           },
         });
         break;
       case TourCreationMode.Edit:
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
-          next: (result: Tour) => {
+          next: (result: any) => {
             //this.router.navigate([`keypoints/create/${this.tour.id}/0`]);
             this.tour = result;
+            this.tourId = result.Id
             this.mode = TourCreationMode.Edit;
             const dialogRef = this.dialog.open(TourKeypointsComponent,{
               data: {
-                tourId: this.tour.id, 
+                tourId: result.Id, 
               },
             });
-            
             dialogRef.afterClosed().subscribe((result) => {
-              this.service.getTourById(this.tour.id!).subscribe({
+              this.service.getTourById(this.tourId).subscribe({
                 next: (result) =>{
                   this.tour = result;
                   this.loadCheckpointsToMap();
@@ -203,8 +205,11 @@ export class TourFormComponent implements OnInit {
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
           next: (result: Tour) => {
+            console.log(result)
             this.tour = result;
             this.mode = TourCreationMode.Edit;
+            console.log(this.tour)
+            console.log(this.tour.id)
             const dialogRef = this.dialog.open(PublicKeypointsListComponent,{
               data: {
                 tourId: this.tour.id, 

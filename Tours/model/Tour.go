@@ -61,7 +61,7 @@ type Tour struct {
 	Tags          ArrayValue     `json:"Tags" gorm:"not null;type:text[]"`
 	Status        TourStatus     `json:"Status" gorm:"type:integer"`
 	Price         float64        `json:"Price"`
-	AuthorId      int            `json:"AuthorId"`
+	AuthorId      int            `json:"AuthorId" gorm:"type:integer"`
 	Equipment     ArrayValue     `json:"Equipment" gorm:"type:integer[]"`
 	DistanceInKm  float64        `json:"DistanceInKm"`
 	ArchivedDate  *time.Time     `json:"ArchivedDate"`  //?

@@ -59,9 +59,9 @@ export class TourCreationComponent {
     if(this.tourForm.valid){
       this.constructEmptyTour();
       this.service.createTour(this.tour).subscribe({
-        next: (result: Tour) => {
+        next: (result: any) => {
           //this.toastr.success('Tour created','Success');
-          this.router.navigate([`tour-creation-form/${result.id}/1`]);
+          this.router.navigate([`tour-creation-form/${result.Id}/1`]);
           this.dialogRef.close();
         },
         error: () =>{

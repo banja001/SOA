@@ -47,3 +47,16 @@ func (service *TourService) Update(tour *model.Tour) (*model.Tour, error) {
 	}
 	return updatedTour, nil
 }
+
+func (service *TourService) GetByAuthorId(authorID string) ([]*model.Tour, error) {
+	tours, err := service.TourRepo.FindByAuthorId(authorID)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", authorID))
+	}
+	var tourPointers []*model.Tour
+	for i := range tours {
+		tourPointers = append(tourPointers, &tours[i])
+	}
+
+	return tourPointers, nil
+}

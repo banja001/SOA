@@ -112,10 +112,29 @@ namespace Explorer.API.Controllers.Author.Authoring
         }
 
         [HttpGet("author")]
-        public ActionResult<PagedResult<TourDto>> GetAllByAuthorId([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<PagedResult<TourDto>> GetAllByAuthorId([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _tourService.GetPagedByAuthorId(authorId, page, pageSize);
-            return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.GetAsync($"tours/author/{authorId}?page={page}&pageSize={pageSize}");
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var tourDtos = System.Text.Json.JsonSerializer.Deserialize<List<TourDto>>(jsonResponse);
+            int totalCount = GetTotalCountFromHeaders(response);
+
+            var pagedResult = new PagedResult<TourDto>(tourDtos,totalCount);
+
+            return pagedResult;
         }
+
+        private int GetTotalCountFromHeaders(HttpResponseMessage response)
+        {
+            if (response.Headers.TryGetValues("X-Total-Count", out var values))
+            {
+                int.TryParse(values.FirstOrDefault(), out int totalCount);
+                return totalCount;
+            }
+            return 0;
+        }
+
+
     }
 }

@@ -60,3 +60,22 @@ func (repo *TourRepository) Update(tour *model.Tour) (*model.Tour, error) {
 	println("Rows affected: ", dbResult.RowsAffected)
 	return tour, nil
 }
+
+func (repo *TourRepository) FindByAuthorId(authorID string) ([]model.Tour, error) {
+	var tours []model.Tour
+	dbResult := repo.DatabaseConnection.Where("author_id = ?", authorID).Find(&tours)
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+
+	for i := range tours {
+		var keypoints []model.TourKeypoint
+		dbResult = repo.DatabaseConnection.Where("tour_id = ?", tours[i].ID).Find(&keypoints)
+		if dbResult.Error != nil {
+			return nil, dbResult.Error
+		}
+		tours[i].KeyPoints = keypoints
+	}
+
+	return tours, nil
+}
