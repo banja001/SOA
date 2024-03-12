@@ -51,3 +51,12 @@ func (repo *TourRepository) FindAll() ([]model.Tour, error) {
 	}
 	return tours, nil
 }
+
+func (repo *TourRepository) Update(tour *model.Tour) (*model.Tour, error) {
+	dbResult := repo.DatabaseConnection.Updates(tour)
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return tour, nil
+}

@@ -62,3 +62,26 @@ func (handler *TourHandler) GetAll(writer http.ResponseWriter, req *http.Request
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(tours)
 }
+
+func (handler *TourHandler) Update(writer http.ResponseWriter, req *http.Request) {
+	var tour model.Tour
+	err := json.NewDecoder(req.Body).Decode(&tour)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	updatedTour, err := handler.TourService.Update(&tour)
+	if err != nil {
+		println("Error while updating a new tour")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(writer).Encode(updatedTour); err != nil {
+		println("Error while encoding tour to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

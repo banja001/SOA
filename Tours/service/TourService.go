@@ -39,3 +39,11 @@ func (service *TourService) GetAll() ([]*model.Tour, error) {
 
 	return tourPointers, nil
 }
+
+func (service *TourService) Update(tour *model.Tour) (*model.Tour, error) {
+	updatedTour, err := service.TourRepo.Update(tour)
+	if err != nil {
+		return nil, err
+	}
+	return updatedTour, nil
+}
