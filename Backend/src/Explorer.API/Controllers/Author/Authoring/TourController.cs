@@ -39,62 +39,51 @@ namespace Explorer.API.Controllers.Author.Authoring
             return tourDtos;
         }
 
-
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] TourDto tourDto)
+        public async Task<ActionResult<TourDto>> Create([FromBody] TourDto tourDto)
         {
-            //var result = _tourService.Create(tour);
-
+            //var result = _tourService.Create(tourDto);
             var client = _factory.CreateClient("toursMicroservice");
-
-            using HttpResponseMessage response = await client.PostAsJsonAsync("/tours/create",tourDto);
-
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/tours/create", tourDto);
             if (!response.IsSuccessStatusCode)
             {
                 return StatusCode((int)response.StatusCode);
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
+            var createdTour = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
 
-            return Ok(jsonResponse);
+            return Ok(createdTour);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Update(int id, [FromBody] TourDto tourDto)
+        public async Task<ActionResult<TourDto>> Update(int id, [FromBody] TourDto tourDto)
         {
-            //var result = _tourService.Update(tour);
+            //var result = _tourService.Update(tourDto);
             var client = _factory.CreateClient("toursMicroservice");
-            using HttpResponseMessage response = await client.PutAsJsonAsync("/tours/update",tourDto);
-
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/tours/update", tourDto);
             if (!response.IsSuccessStatusCode)
             {
                 return StatusCode((int)response.StatusCode);
             }
-
             var jsonResponse = await response.Content.ReadAsStringAsync();
+            var updatedTour = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
 
-            return Ok(jsonResponse);
+            return Ok(updatedTour);
         }
 
-
-        [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
-        {
-            var result = _tourService.Delete(id);
-            return CreateResponse(result);
-        }
 
         [AllowAnonymous]
         [HttpGet("{id:int}")]
-        public async Task<TourDto> Get(int id)
+        public async Task<ActionResult<TourDto>> Get(int id)
         {
             //var result = _tourService.Get(id);
-   
             var client = _factory.CreateClient("toursMicroservice");
             using HttpResponseMessage response = await client.GetAsync("tours/" + id);
             var jsonResponse = await response.Content.ReadAsStringAsync();
             TourDto tourDto = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
-            return tourDto;
+
+            return Ok(tourDto);
         }
 
         [HttpPut("publish/{id:int}")]

@@ -61,7 +61,6 @@ export class TourComponent implements OnInit {
   getTours(): void {
     this.service.getToursByAuthorId(this.user?.id??-100).subscribe({
       next: (result: PagedResults<Tour>) => {
-        console.log(result)
         this.tours = result.results
         if(this.tours.length == 0){
           this.noTours = true;

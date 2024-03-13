@@ -64,11 +64,11 @@ type Tour struct {
 	AuthorId      int            `json:"AuthorId" gorm:"type:integer"`
 	Equipment     ArrayValue     `json:"Equipment" gorm:"type:integer[]"`
 	DistanceInKm  float64        `json:"DistanceInKm"`
-	ArchivedDate  *time.Time     `json:"ArchivedDate"`  //?
-	PublishedDate *time.Time     `json:"PublishedDate"` //?
+	ArchivedDate  *time.Time     `json:"ArchivedDate"`
+	PublishedDate *time.Time     `json:"PublishedDate"`
 	Durations     TourDurations  `json:"Durations" gorm:"type:jsonb"`
 	KeyPoints     []TourKeypoint `json:"KeyPoints" gorm:"-"`
-	Image         string         `json:"Image" gorm:"type:text"` //?
+	Image         string         `json:"Image" gorm:"type:text"`
 }
 
 type TourStatus int

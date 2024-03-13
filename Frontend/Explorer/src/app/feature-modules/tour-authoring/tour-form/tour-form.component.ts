@@ -107,7 +107,6 @@ export class TourFormComponent implements OnInit {
       this.service.getTour(parseInt(params['id'])).subscribe({
         next: (result: Tour) => {
           this.tour = result;
-          console.log(this.tour)
           this.loadCheckpointsToMap();
         }
       });
@@ -118,7 +117,6 @@ export class TourFormComponent implements OnInit {
     this.mapComponent.setStatus();
 
     this.mapComponent.clearMarkers();
-
     if (this.mode === TourCreationMode.Edit) {
       this.patchFormData();
       this.mapComponent.initKeyPointsRoute(this.tour.keyPoints);
@@ -132,7 +130,7 @@ export class TourFormComponent implements OnInit {
         this.constructTour()
         this.service.createTour(this.tour).subscribe({
           next: (result: any) => {
-            this.router.navigate([`keypoints/create/${result.Id}/0`]);
+            this.router.navigate([`keypoints/create/${result.id}/0`]);
           },
         });
         break;
@@ -142,15 +140,14 @@ export class TourFormComponent implements OnInit {
           next: (result: any) => {
             //this.router.navigate([`keypoints/create/${this.tour.id}/0`]);
             this.tour = result;
-            this.tourId = result.Id
             this.mode = TourCreationMode.Edit;
             const dialogRef = this.dialog.open(TourKeypointsComponent,{
               data: {
-                tourId: result.Id, 
+                tourId: this.tour.id, 
               },
             });
             dialogRef.afterClosed().subscribe((result) => {
-              this.service.getTourById(this.tourId).subscribe({
+              this.service.getTourById(this.tour.id!).subscribe({
                 next: (result) =>{
                   this.tour = result;
                   this.loadCheckpointsToMap();
@@ -204,9 +201,9 @@ export class TourFormComponent implements OnInit {
       case TourCreationMode.Edit:
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
-          next: (result: Tour) => {
+          next: (result: any) => {
             console.log(result)
-            this.tour = result;
+            this.tour = result.tour;
             this.mode = TourCreationMode.Edit;
             console.log(this.tour)
             console.log(this.tour.id)
@@ -241,11 +238,13 @@ export class TourFormComponent implements OnInit {
   }
 
   private patchFormData() {
+    console.log(this.tour.name)
+    console.log('usao u patch')
     this.tourForm.patchValue({
       "name": this.tour.name,
       "description": this.tour.description,
       "difficulty": `${this.tour.difficulty}`,
-      "tags": this.tour.tags.map(tag => '#' + tag).join(' '),
+      "tags": this.tour.tags ? this.tour.tags.map(tag => '#' + tag).join(' ') : '',
       "price": String(this.tour.price),
       "image": this.tour.image
     });
