@@ -22,13 +22,18 @@ func initDB() *gorm.DB {
 		print(err)
 		return nil
 	}
+
 	err = database.AutoMigrate(&model.Tour{})
 	if err != nil {
-		log.Fatal("Error while running migration for tour")
+		log.Fatal("Error while running migration for tours")
 	}
 	err = database.AutoMigrate(&model.TourKeypoint{})
 	if err != nil {
 		log.Fatal("Error while running migration for tour keypoints")
+	}
+	err = database.AutoMigrate(&model.Session{})
+	if err != nil {
+		log.Fatal("Error while running migration for sessions")
 	}
 	return database
 }
@@ -38,6 +43,7 @@ func startServer(database *gorm.DB) {
 
 	initTourKeypoints(router, database)
 	initTours(router, database)
+	initSessions(router, database)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
@@ -65,6 +71,14 @@ func initTours(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
+}
+
+func initSessions(router *mux.Router, database *gorm.DB) {
+	repo := &repo.SessionRepository{DatabaseConnection: database}
+	service := &service.SessionService{SessionRepo: repo}
+	handler := &handler.SessionHandler{SessionService: service}
+
+	router.HandleFunc("/sessions/create", handler.Create).Methods("POST")
 }
 
 func main() {

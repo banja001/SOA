@@ -238,8 +238,6 @@ export class TourFormComponent implements OnInit {
   }
 
   private patchFormData() {
-    console.log(this.tour.name)
-    console.log('usao u patch')
     this.tourForm.patchValue({
       "name": this.tour.name,
       "description": this.tour.description,

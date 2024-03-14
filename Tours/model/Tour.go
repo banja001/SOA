@@ -88,3 +88,7 @@ const (
 	Advanced
 	Pro
 )
+
+func (Tour) TableName() string {
+	return "Tour"
+}

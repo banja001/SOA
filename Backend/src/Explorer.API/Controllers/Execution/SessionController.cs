@@ -10,10 +10,12 @@ namespace Explorer.API.Controllers.Execution
     public class SessionController : BaseApiController
     {
         private readonly ISessionService _sessionService;
+        private readonly IHttpClientFactory _factory;
 
-        public SessionController(ISessionService sessionService)
+        public SessionController(ISessionService sessionService, IHttpClientFactory factory)
         {
             _sessionService = sessionService;
+            _factory = factory;
         }
 
         [HttpGet("{id:long}")]
@@ -44,11 +46,22 @@ namespace Explorer.API.Controllers.Execution
         }
 
         [HttpPost]
-        public ActionResult<SessionDto> Create([FromBody] SessionDto session)
+        public async Task<ActionResult<SessionDto>> Create([FromBody] SessionDto session)
         {
-            var result = _sessionService.Create(session);
-            return CreateResponse(result);
+            // var result = _sessionService.Create(session);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/sessions/create", session);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var createdSession = System.Text.Json.JsonSerializer.Deserialize<SessionDto>(jsonResponse);
+
+            return Ok(createdSession);
         }
+
 
         [HttpPut]
         public ActionResult<SessionDto> Update([FromBody] SessionDto session)
