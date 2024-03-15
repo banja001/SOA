@@ -8,7 +8,7 @@ import (
 )
 
 type CompletedKeyPoint struct {
-	KeypointId     int        `json:"KeypointId"`
+	KeypointId     int        `json:"KeyPointId"`
 	CompletionTime *time.Time `json:"CompletionTime"`
 }
 

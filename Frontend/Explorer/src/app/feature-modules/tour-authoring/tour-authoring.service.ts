@@ -64,6 +64,7 @@ export class TourAuthoringService {
   }
 
   updateTour(tour: Tour): Observable<Tour> {
+    console.log(tour.durations)
     return this.http.put<Tour>(
       environment.apiHost + 'tourManagement/tour/' + tour.id,
       tour

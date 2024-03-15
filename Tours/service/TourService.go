@@ -80,13 +80,11 @@ func (service *TourService) ChangeStatus(id string, authorID int, tourStatus mod
 			return nil, fmt.Errorf("tour must be published in order to be archived")
 		}
 		tour.ArchivedDate = &currentTime
-		tour.Status = tourStatus
 	}
 	tour.Status = tourStatus
 	updatedTour, err := service.TourRepo.Update(&tour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update tour: %v", err)
 	}
-
 	return updatedTour, nil
 }

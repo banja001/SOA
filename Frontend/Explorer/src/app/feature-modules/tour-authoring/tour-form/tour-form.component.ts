@@ -202,11 +202,8 @@ export class TourFormComponent implements OnInit {
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
           next: (result: any) => {
-            console.log(result)
             this.tour = result.tour;
             this.mode = TourCreationMode.Edit;
-            console.log(this.tour)
-            console.log(this.tour.id)
             const dialogRef = this.dialog.open(PublicKeypointsListComponent,{
               data: {
                 tourId: this.tour.id, 
@@ -246,7 +243,6 @@ export class TourFormComponent implements OnInit {
       "price": String(this.tour.price),
       "image": this.tour.image
     });
-  
     this.tour.durations.forEach(duration => {
       if (duration.transportation === TransportationType.Walking) {
         this.toggleFieldWalk(); // Toggle the field to make isWalkChecked true
@@ -285,7 +281,6 @@ export class TourFormComponent implements OnInit {
 
   private getDurations(): TourDuration[] {
     const tourdurations: TourDuration[] = [];
-  
     if (this.tourForm.value.walkTime !== '') {
       const walkDuration: TourDuration = {
         timeInSeconds: Math.round(Number(this.tourForm.value.walkTime) * 60),

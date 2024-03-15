@@ -29,14 +29,18 @@ namespace Explorer.API.Controllers.Author.Authoring
         }
 
         [HttpGet]
-        public async Task<List<TourDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<PagedResult<TourDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
         {
             //var result = _tourService.GetPaged(page, pageSize);
             var client = _factory.CreateClient("toursMicroservice");
             using HttpResponseMessage response = await client.GetAsync("tours");
             var jsonResponse = await response.Content.ReadAsStringAsync();
             List<TourDto> tourDtos = System.Text.Json.JsonSerializer.Deserialize<List<TourDto>>(jsonResponse);
-            return tourDtos;
+            int totalCount = GetTotalCountFromHeaders(response);
+
+            var pagedResult = new PagedResult<TourDto>(tourDtos, totalCount);
+
+            return pagedResult;
         }
 
         [HttpPost]
@@ -122,7 +126,7 @@ namespace Explorer.API.Controllers.Author.Authoring
         public async Task<PagedResult<TourDto>> GetAllByAuthorId([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var client = _factory.CreateClient("toursMicroservice");
-            using HttpResponseMessage response = await client.GetAsync($"tours/author/{authorId}?page={page}&pageSize={pageSize}");
+            using HttpResponseMessage response = await client.GetAsync($"tours/author/" + authorId);
             var jsonResponse = await response.Content.ReadAsStringAsync();
             var tourDtos = System.Text.Json.JsonSerializer.Deserialize<List<TourDto>>(jsonResponse);
             int totalCount = GetTotalCountFromHeaders(response);

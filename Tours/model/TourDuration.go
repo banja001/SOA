@@ -7,11 +7,11 @@ import (
 )
 
 type TourDuration struct {
-	TimeInSeconds  uint               `json:"TimeInSeconds"`
-	Transportation TransportationType `json:"TransportationType"`
+	TimeInSeconds  uint               `json:"TimeInSeconds" gorm:"type:int"`
+	Transportation TransportationType `json:"Transportation"`
 }
 
-type TransportationType int
+type TransportationType int32
 
 const (
 	Walking TransportationType = iota
@@ -48,6 +48,5 @@ func (durations TourDurations) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return bytes, nil
 }
