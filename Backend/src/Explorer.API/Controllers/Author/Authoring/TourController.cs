@@ -87,17 +87,35 @@ namespace Explorer.API.Controllers.Author.Authoring
         }
 
         [HttpPut("publish/{id:int}")]
-        public ActionResult<TourDto> Publish(int id, [FromBody] int authorId)
+        public async Task<ActionResult<TourDto>> Publish(int id, [FromBody] int authorId)
         {
-            var result = _tourService.Publish(id, authorId);
-            return CreateResponse(result);
+            //var result = _tourService.Publish(id, authorId);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/tours/publish/" + id, authorId);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var publishedTour = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
+
+            return Ok(publishedTour);
         }
 
         [HttpPut("archive/{id:int}")]
-        public ActionResult<TourDto> Archive(int id, [FromBody] int authorId)
+        public async Task<ActionResult<TourDto>> Archive(int id, [FromBody] int authorId)
         {
-            var result = _tourService.Archive(id, authorId);
-            return CreateResponse(result);
+            //var result = _tourService.Archive(id, authorId);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/tours/archive/" + id, authorId);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var archivedTour = System.Text.Json.JsonSerializer.Deserialize<TourDto>(jsonResponse);
+
+            return Ok(archivedTour);
         }
 
         [HttpGet("author")]

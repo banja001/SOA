@@ -71,6 +71,8 @@ func initTours(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
+	router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
+	router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
 }
 
 func initSessions(router *mux.Router, database *gorm.DB) {
