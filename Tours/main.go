@@ -81,6 +81,8 @@ func initSessions(router *mux.Router, database *gorm.DB) {
 	handler := &handler.SessionHandler{SessionService: service}
 
 	router.HandleFunc("/sessions/create", handler.Create).Methods("POST")
+	router.HandleFunc("/sessions/update", handler.Update).Methods("PUT")
+	router.HandleFunc("/sessions/completeKeypoint/{sessionId}", handler.CompleteKeypoint).Methods("PUT")
 }
 
 func main() {

@@ -31,7 +31,7 @@ func (repo *TourRepository) Create(tour *model.Tour) (*model.Tour, error) {
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	println("Tours created: ", dbResult.RowsAffected)
 	return tour, nil
 }
 
@@ -57,7 +57,7 @@ func (repo *TourRepository) Update(tour *model.Tour) (*model.Tour, error) {
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	println("Tours updated: ", dbResult.RowsAffected)
 	return tour, nil
 }
 

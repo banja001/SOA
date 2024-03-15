@@ -1,11 +1,6 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 type TourKeypoint struct {
-	gorm.Model
 	ID             int     `json:"Id"`
 	Name           string  `json:"Name" gorm:"not null;type:string"`
 	Description    string  `json:"Description" gorm:"not null"`
@@ -17,6 +12,11 @@ type TourKeypoint struct {
 	PositionInTour int     `json:"PositionInTour"`
 	PublicPointID  int     `json:"PublicPointId"`
 }
+
+func (TourKeypoint) TableName() string {
+	return "TourKeypoints"
+}
+
 
 // func (tourKeypoint TourKeypoint) Validate(db *gorm.DB) {
 // 	if tourKeypoint.Latitude > 90{
