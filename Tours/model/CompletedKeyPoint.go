@@ -8,7 +8,7 @@ import (
 )
 
 type CompletedKeyPoint struct {
-	KeypointId     int        `json:"KeypointId"`
+	KeypointId     int        `json:"KeyPointId"`
 	CompletionTime *time.Time `json:"CompletionTime"`
 }
 
@@ -24,6 +24,7 @@ func (keypoints *CompletedKeyPoints) Scan(value interface{}) error {
 	if !ok {
 		return errors.New("Scan source is not []byte")
 	}
+
 
 	if err := json.Unmarshal(bytes, keypoints); err != nil {
 		return err

@@ -19,22 +19,22 @@ func (repo *TourKeypointRepository) FindById(id string) (model.TourKeypoint, err
 	return tourKeypoint, nil
 }
 
-func (repo *TourKeypointRepository) Create(tourKeypoint *model.TourKeypoint) error {
+func (repo *TourKeypointRepository) Create(tourKeypoint *model.TourKeypoint) (model.TourKeypoint, error) {
 	dbResult := repo.DatabaseConnection.Create(tourKeypoint)
 	if dbResult.Error != nil {
-		return dbResult.Error
+		return *tourKeypoint, dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
+	println("Tour keypoints created: ", dbResult.RowsAffected)
+	return *tourKeypoint, nil
 }
 
-func (repo *TourKeypointRepository) Update(tourKeypoint *model.TourKeypoint) error {
+func (repo *TourKeypointRepository) Update(tourKeypoint *model.TourKeypoint) (model.TourKeypoint, error) {
 	dbResult := repo.DatabaseConnection.Updates(tourKeypoint)
 	if dbResult.Error != nil {
-		return dbResult.Error
+		return *tourKeypoint, dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
+	println("Tour keypoints updated: ", dbResult.RowsAffected)
+	return *tourKeypoint, nil
 }
 
 func (repo *TourKeypointRepository) Delete(id string) error {
@@ -42,6 +42,6 @@ func (repo *TourKeypointRepository) Delete(id string) error {
 	if dbResult.Error != nil {
 		return dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	println("Tour keypoints deleted: ", dbResult.RowsAffected)
 	return nil
 }
