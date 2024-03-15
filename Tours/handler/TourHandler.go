@@ -29,7 +29,7 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 	var tour model.Tour
 	err := json.NewDecoder(req.Body).Decode(&tour)
 	if err != nil {
-		println("Error while parsing json")
+		println("Error while parsing json: Create Tour")
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -67,7 +67,7 @@ func (handler *TourHandler) Update(writer http.ResponseWriter, req *http.Request
 	var tour model.Tour
 	err := json.NewDecoder(req.Body).Decode(&tour)
 	if err != nil {
-		println("Error while parsing json")
+		println("Error while parsing json: Update Tour")
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}

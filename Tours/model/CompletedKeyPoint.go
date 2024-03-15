@@ -25,6 +25,7 @@ func (keypoints *CompletedKeyPoints) Scan(value interface{}) error {
 		return errors.New("Scan source is not []byte")
 	}
 
+
 	if err := json.Unmarshal(bytes, keypoints); err != nil {
 		return err
 	}
