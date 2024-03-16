@@ -25,3 +25,20 @@ func (handler *UserExperienceHandler) GetByUserId(writer http.ResponseWriter, re
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(userExperience)
 }
+
+func (handler *UserExperienceHandler) AddXP(writer http.ResponseWriter, req *http.Request) {
+	id := mux.Vars(req)["id"]
+	num, _ := strconv.Atoi(id)
+	
+	xp := mux.Vars(req)["xp"]
+	xpNum, _ := strconv.Atoi(xp) 
+	
+	userExperience, err := handler.UserExperienceService.AddXP(num, xpNum)
+	if err != nil {
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(userExperience)
+}

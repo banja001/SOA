@@ -33,6 +33,7 @@ func startServer(handler *handler.UserExperienceHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/userxp/{userId}", handler.GetByUserId).Methods("GET")
+	router.HandleFunc("/addxp/{id}/{xp}", handler.AddXP)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
