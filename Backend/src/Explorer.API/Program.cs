@@ -22,6 +22,10 @@ builder.Services.AddHttpClient("toursMicroservice", (client) =>
     client.BaseAddress = new Uri("http://localhost:80");
 });
 
+builder.Services.AddHttpClient("encountersMicroservice", (client) =>
+{
+    client.BaseAddress = new Uri("http://localhost:8090");
+});
 
 builder.Services.AddSignalR(o =>
 {
