@@ -48,6 +48,7 @@ export class TourKeypointsComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
       this.tourId = this.data.tourId;
+      console.log(this.tourId)
       this.mode = parseInt(params['mode']);
     });
   }
@@ -97,6 +98,7 @@ export class TourKeypointsComponent implements OnInit {
     const cordinates = this.mapComponent.getLastMarker();
     this.coordinates=cordinates;
     let position = 0;
+    console.log(this.tourId)
     this.service.getTour(this.tourId).subscribe({
       next: (result: Tour) => {
         console.log(`kp num=${result.keyPoints.length}`);

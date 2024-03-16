@@ -1,49 +1,94 @@
 package model
 
 import (
+	"database/sql/driver"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
-
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type TourStatus string
+type ArrayValue []interface{}
 
-const (
-	Draft       TourStatus = "Draft"
-	Published   TourStatus = "Published"
-	Archived    TourStatus = "Archived"
-	TouristMade TourStatus = "TouristMade"
-)
+func (a *ArrayValue) Scan(value interface{}) error {
+	if value == nil {
+		*a = []interface{}{}
+		return nil
+	}
 
-type TourDifficulty string
+	switch v := value.(type) {
+	case string:
+		str := strings.TrimPrefix(v, "{")
+		str = strings.TrimSuffix(str, "}")
+		strValues := strings.Split(str, ",")
+		var valueSlice []interface{}
+		for _, strValue := range strValues {
+			strValue = strings.TrimSpace(strValue)
+			if strValue == "" {
+				continue
+			}
+			intValue, err := strconv.Atoi(strValue)
+			if err == nil {
+				valueSlice = append(valueSlice, intValue)
+			} else {
+				valueSlice = append(valueSlice, strValue)
+			}
+		}
+		*a = valueSlice
+	case []interface{}:
+		*a = v
+	default:
+		return errors.New("failed to scan ArrayValue: unexpected type")
+	}
 
-const (
-	Beginner     TourDifficulty = "Beginner"
-	Intermediate TourDifficulty = "Intermediate"
-	Advanced     TourDifficulty = "Advanced"
-	Pro          TourDifficulty = "Pro"
-)
-
-type Tour struct {
-	ID            uuid.UUID      `json:"id" gorm:"primary_key"`
-	Name          string         `json:"name" gorm:"not null;type:string"`
-	Description   string         `json:"description" gorm:"not null;type:string"`
-	//Difficulty    TourDifficulty `json:"difficulty" gorm:"type:enum('Beginner', 'Intermediate', 'Advanced', 'Pro')"`
-	Tags          []string       `json:"tags" gorm:"not null;type:string"`
-	//Status        TourStatus     `json:"status" gorm:"type:enum('Draft', 'Published', 'Archived', 'TouristMade')"`
-	Price         float64        `json:"price"`
-	AuthorId      int            `json:"authorId"`
-	Equipment     []int          `json:"equipment" gorm:"type:string"`
-	DistanceInKm  float64        `json:"distanceInKm"`
-	ArchivedDate  *time.Time     `json:"archivedDate"`
-	PublishedDate *time.Time     `json:"publishedDate"`
-	//Durations     []TourDuration `gorm:"foreignKey:TourID"`
-	//KeyPoints     []TourKeyPoint `gorm:"foreignKey:TourID"`
-	Image string `json:"image" gorm:"not null;type:string"`
+	return nil
 }
 
-func (tour *Tour) BeforeCreate(scope *gorm.DB) error {
-	tour.ID = uuid.New()
-	return nil
+func (a ArrayValue) Value() (driver.Value, error) {
+	var strArray []string
+	for _, v := range a {
+		strArray = append(strArray, fmt.Sprintf("%v", v))
+	}
+	return "{" + strings.Join(strArray, ",") + "}", nil
+}
+
+type Tour struct {
+	ID            int            `json:"Id" gorm:"primary_key"`
+	Name          string         `json:"Name" gorm:"not null;type:text"`
+	Description   string         `json:"Description" gorm:"not null;type:text"`
+	Difficulty    TourDifficulty `json:"Difficulty" gorm:"type:integer"`
+	Tags          ArrayValue     `json:"Tags" gorm:"not null;type:text[]"`
+	Status        TourStatus     `json:"Status" gorm:"type:integer"`
+	Price         float64        `json:"Price"`
+	AuthorId      int            `json:"AuthorId" gorm:"type:integer"`
+	Equipment     ArrayValue     `json:"Equipment" gorm:"type:integer[]"`
+	DistanceInKm  float64        `json:"DistanceInKm"`
+	ArchivedDate  *time.Time     `json:"ArchivedDate"`
+	PublishedDate *time.Time     `json:"PublishedDate"`
+	Durations     TourDurations  `json:"Durations" gorm:"type:jsonb"`
+	KeyPoints     []TourKeypoint `json:"KeyPoints" gorm:"-"`
+	Image         string         `json:"Image" gorm:"type:text"`
+}
+
+type TourStatus int
+
+const (
+	Draft TourStatus = iota
+	Published
+	Archived
+	TouristMade
+)
+
+type TourDifficulty int
+
+const (
+	Beginner TourDifficulty = iota
+	Intermediate
+	Advanced
+	Pro
+)
+
+func (Tour) TableName() string {
+	return "Tour"
 }

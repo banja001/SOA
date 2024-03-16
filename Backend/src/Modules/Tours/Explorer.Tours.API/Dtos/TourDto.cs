@@ -1,4 +1,6 @@
-﻿namespace Explorer.Tours.API.Dtos
+﻿using System.Numerics;
+
+namespace Explorer.Tours.API.Dtos
 {
     public class TourDto
     {

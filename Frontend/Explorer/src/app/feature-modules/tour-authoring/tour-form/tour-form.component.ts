@@ -39,6 +39,7 @@ export class TourFormComponent implements OnInit {
     keyPoints: [],
     image: 'https://media.istockphoto.com/id/904172104/photo/weve-made-it-all-this-way-i-am-proud.jpg?s=612x612&w=0&k=20&c=MewnsAhbeGRcMBN9_ZKhThmqPK6c8nCT8XYk5ZM_hdg='
   };
+  tourId: number
 
   showFieldWalk: boolean = false;
   showFieldBicycle: boolean = false;
@@ -116,7 +117,6 @@ export class TourFormComponent implements OnInit {
     this.mapComponent.setStatus();
 
     this.mapComponent.clearMarkers();
-
     if (this.mode === TourCreationMode.Edit) {
       this.patchFormData();
       this.mapComponent.initKeyPointsRoute(this.tour.keyPoints);
@@ -129,7 +129,7 @@ export class TourFormComponent implements OnInit {
       case TourCreationMode.Create:
         this.constructTour()
         this.service.createTour(this.tour).subscribe({
-          next: (result: Tour) => {
+          next: (result: any) => {
             this.router.navigate([`keypoints/create/${result.id}/0`]);
           },
         });
@@ -137,7 +137,7 @@ export class TourFormComponent implements OnInit {
       case TourCreationMode.Edit:
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
-          next: (result: Tour) => {
+          next: (result: any) => {
             //this.router.navigate([`keypoints/create/${this.tour.id}/0`]);
             this.tour = result;
             this.mode = TourCreationMode.Edit;
@@ -146,7 +146,6 @@ export class TourFormComponent implements OnInit {
                 tourId: this.tour.id, 
               },
             });
-            
             dialogRef.afterClosed().subscribe((result) => {
               this.service.getTourById(this.tour.id!).subscribe({
                 next: (result) =>{
@@ -202,8 +201,8 @@ export class TourFormComponent implements OnInit {
       case TourCreationMode.Edit:
         this.constructTour();
         this.service.updateTour(this.tour).subscribe({
-          next: (result: Tour) => {
-            this.tour = result;
+          next: (result: any) => {
+            this.tour = result.tour;
             this.mode = TourCreationMode.Edit;
             const dialogRef = this.dialog.open(PublicKeypointsListComponent,{
               data: {
@@ -240,11 +239,10 @@ export class TourFormComponent implements OnInit {
       "name": this.tour.name,
       "description": this.tour.description,
       "difficulty": `${this.tour.difficulty}`,
-      "tags": this.tour.tags.map(tag => '#' + tag).join(' '),
+      "tags": this.tour.tags ? this.tour.tags.map(tag => '#' + tag).join(' ') : '',
       "price": String(this.tour.price),
       "image": this.tour.image
     });
-  
     this.tour.durations.forEach(duration => {
       if (duration.transportation === TransportationType.Walking) {
         this.toggleFieldWalk(); // Toggle the field to make isWalkChecked true
@@ -283,7 +281,6 @@ export class TourFormComponent implements OnInit {
 
   private getDurations(): TourDuration[] {
     const tourdurations: TourDuration[] = [];
-  
     if (this.tourForm.value.walkTime !== '') {
       const walkDuration: TourDuration = {
         timeInSeconds: Math.round(Number(this.tourForm.value.walkTime) * 60),

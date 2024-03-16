@@ -18,20 +18,20 @@ func (service *TourKeypointService) Find(id string) (*model.TourKeypoint, error)
 	return &tourKeypoint, nil
 }
 
-func (service *TourKeypointService) Create(tourKeypoint *model.TourKeypoint) error {
-	err := service.TourKeypointRepo.Create(tourKeypoint)
+func (service *TourKeypointService) Create(tourKeypoint *model.TourKeypoint) (*model.TourKeypoint, error) {
+	createdTourKeypoint, err := service.TourKeypointRepo.Create(tourKeypoint)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &createdTourKeypoint, nil
 }
 
-func (service *TourKeypointService) Update(tourKeypoint *model.TourKeypoint) error {
-	err := service.TourKeypointRepo.Update(tourKeypoint)
+func (service *TourKeypointService) Update(tourKeypoint *model.TourKeypoint) (*model.TourKeypoint, error) {
+	updatedTourKeypoint, err := service.TourKeypointRepo.Update(tourKeypoint)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &updatedTourKeypoint, nil
 }
 
 func (service *TourKeypointService) Delete(id string) error {

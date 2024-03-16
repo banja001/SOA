@@ -1,5 +1,6 @@
 ﻿using Explorer.Tours.API.Dtos;
 using Explorer.Tours.API.Public.Execution;
+using Explorer.Tours.Core.Domain.Sessions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,12 @@ namespace Explorer.API.Controllers.Execution
     public class SessionController : BaseApiController
     {
         private readonly ISessionService _sessionService;
+        private readonly IHttpClientFactory _factory;
 
-        public SessionController(ISessionService sessionService)
+        public SessionController(ISessionService sessionService, IHttpClientFactory factory)
         {
             _sessionService = sessionService;
+            _factory = factory;
         }
 
         [HttpGet("{id:long}")]
@@ -44,17 +47,39 @@ namespace Explorer.API.Controllers.Execution
         }
 
         [HttpPost]
-        public ActionResult<SessionDto> Create([FromBody] SessionDto session)
+        public async Task<ActionResult<SessionDto>> Create([FromBody] SessionDto session)
         {
-            var result = _sessionService.Create(session);
-            return CreateResponse(result);
+            // var result = _sessionService.Create(session);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/sessions/create", session);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var createdSession = System.Text.Json.JsonSerializer.Deserialize<SessionDto>(jsonResponse);
+
+            return Ok(createdSession);
         }
 
+
         [HttpPut]
-        public ActionResult<SessionDto> Update([FromBody] SessionDto session)
+        public async Task<ActionResult<SessionDto>> Update([FromBody] SessionDto session)
         {
-            var result = _sessionService.Update(session);
-            return CreateResponse(result);
+            //var result = _sessionService.Update(session);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/sessions/update", session);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var updatedSession = System.Text.Json.JsonSerializer.Deserialize<SessionDto>(jsonResponse);
+
+            return Ok(updatedSession);
         }
 
         [HttpGet("check/{id:long}")]
@@ -65,10 +90,21 @@ namespace Explorer.API.Controllers.Execution
         }
 
         [HttpPut("completeKeyPoint/{sessionId:int}/{keyPointId:int}")]
-        public ActionResult<SessionDto> CompleteKeyPoint(int sessionId, int keyPointId)
+        public async Task<ActionResult<SessionDto>> CompleteKeyPoint(int sessionId, int keyPointId)
         {
-            var result = _sessionService.AddCompletedKeyPoint(sessionId, keyPointId);
-            return CreateResponse(result);
+            //var result = _sessionService.AddCompletedKeyPoint(sessionId, keyPointId);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("toursMicroservice");
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/sessions/completeKeypoint/" +  sessionId, keyPointId);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var updatedSession = System.Text.Json.JsonSerializer.Deserialize<SessionDto>(jsonResponse);
+
+            return Ok(updatedSession);
         }
 
         [HttpGet("getByTourAndTouristId/{tourId:long}/{touristId:long}")]
