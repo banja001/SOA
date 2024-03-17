@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encgo/model"
 	"encgo/service"
 	"encoding/json"
 	"fmt"
@@ -46,4 +47,29 @@ func (handler *UserExperienceHandler) AddXP(writer http.ResponseWriter, req *htt
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(userExperience)
+}
+
+func (handler *UserExperienceHandler) Create(writer http.ResponseWriter, req *http.Request) {
+	var userExperience model.UserExperience
+	err := json.NewDecoder(req.Body).Decode(&userExperience)
+	if err != nil {
+		println("Error while parsing json: Create user experience")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	createdUserExperience, err := handler.UserExperienceService.Create(&userExperience)
+	if err != nil {
+		println("Error while creating a new user experience")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(writer).Encode(createdUserExperience); err != nil {
+		println("Error while encoding user experience to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

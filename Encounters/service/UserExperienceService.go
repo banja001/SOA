@@ -29,3 +29,11 @@ func (service *UserExperienceService) FindByUserId(userId int) (*model.UserExper
 	}
 	return &userExperience, nil
 }
+
+func (service *UserExperienceService) Create(userExperience *model.UserExperience) (*model.UserExperience, error) {
+	createdUserExperience, err := service.UserExperienceRepo.Create(userExperience)
+	if err != nil {
+		return nil, err
+	}
+	return createdUserExperience, nil
+}
