@@ -64,7 +64,7 @@ namespace Explorer.API.Controllers.Tourist.Execution
             
             var jsonResponse = await response.Content.ReadAsStringAsync();
             
-            UserExperienceDto userExperienceDto = JsonSerializer.Deserialize<UserExperienceDto>(jsonResponse);
+            var userExperienceDto = JsonSerializer.Deserialize<UserExperienceDto>(jsonResponse);
             
             return Ok(userExperienceDto);
         }
