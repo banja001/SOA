@@ -50,8 +50,8 @@ namespace Explorer.API.Controllers.Tourist.Execution
             return CreateResponse(result);
         }
 
-        [HttpGet("userxp/{userId:long}")]
-        public async Task<ActionResult<UserExperienceDto>> GetByUserId(int userId)
+        [HttpGet("userxp/{userId:int}")]
+        public async Task<ActionResult<PagedResult<UserExperienceDto>>> GetByUserId(int userId)
         {
             //var result = _userExperienceService.GetByUserId(userId);
 

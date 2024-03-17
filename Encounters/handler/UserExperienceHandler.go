@@ -3,6 +3,7 @@ package handler
 import (
 	"encgo/service"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -22,6 +23,10 @@ func (handler *UserExperienceHandler) GetByUserId(writer http.ResponseWriter, re
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
+
+	u, _ := json.Marshal(userExperience) 
+	fmt.Println(string(u))
+
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(userExperience)
 }
