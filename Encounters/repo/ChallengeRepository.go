@@ -27,3 +27,12 @@ func (repo *ChallengeRepository) Delete(id int) error {
 	println("Challenge deleted, with id: ", id)
 	return nil
 }
+
+func (repo *ChallengeRepository) Update(challenge *model.Challenge) (model.Challenge, error) {
+	dbResult := repo.DatabaseConnection.Updates(challenge)
+	if dbResult.Error != nil {
+		return *challenge, dbResult.Error
+	}
+	println("Challenge updated: ", challenge.ID)
+	return *challenge, nil
+}

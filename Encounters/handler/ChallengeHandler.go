@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encgo/model"
 	"encgo/service"
 	"encoding/json"
 	"fmt"
@@ -39,4 +40,27 @@ func (handler *ChallengeHandler) Delete(writer http.ResponseWriter, req *http.Re
 	}
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *ChallengeHandler) Update(writer http.ResponseWriter, req *http.Request) {
+	var challenge model.Challenge
+	err := json.NewDecoder(req.Body).Decode(&challenge)
+	if err != nil {
+		println("Error while parsing json: Update challenge")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	updatedChallenge, err := handler.ChallengeService.Update(&challenge)
+	if err != nil {
+		println("Error while updating a challenge")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(writer).Encode(updatedChallenge); err != nil {
+		println("Error while encoding tour to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

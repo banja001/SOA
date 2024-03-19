@@ -25,3 +25,11 @@ func (service *ChallengeService) Delete(id int) error {
 	}
 	return nil
 }
+
+func (service *ChallengeService) Update(challenge *model.Challenge) (*model.Challenge, error) {
+	updatedChallenge, err := service.ChallengeRepository.Update(challenge)
+	if err != nil {
+		return nil, err
+	}
+	return &updatedChallenge, nil
+}
