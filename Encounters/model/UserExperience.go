@@ -1,10 +1,10 @@
 package model
 
 type UserExperience struct {
-	ID     int `json:"id" gorm:"primary_key"`
-	UserID int `json:"userId"`
-	XP     int `json:"xp"`
-	Level  int `json:"level"`
+	ID     int `json:"Id" gorm:"primaryKey;autoIncrement"`
+	UserID int `json:"UserId"`
+	XP     int `json:"XP"`
+	Level  int `json:"Level"`
 }
 
 func (userExperience *UserExperience) AddXP(xp int) {

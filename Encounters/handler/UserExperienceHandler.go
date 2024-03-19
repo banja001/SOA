@@ -52,6 +52,7 @@ func (handler *UserExperienceHandler) AddXP(writer http.ResponseWriter, req *htt
 func (handler *UserExperienceHandler) Create(writer http.ResponseWriter, req *http.Request) {
 	var userExperience model.UserExperience
 	err := json.NewDecoder(req.Body).Decode(&userExperience)
+	
 	if err != nil {
 		println("Error while parsing json: Create user experience")
 		writer.WriteHeader(http.StatusBadRequest)
