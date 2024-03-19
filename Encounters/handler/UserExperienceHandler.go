@@ -29,7 +29,7 @@ func (handler *UserExperienceHandler) GetByUserId(writer http.ResponseWriter, re
 	fmt.Println(string(u))
 
 	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(&userExperience)
+	json.NewEncoder(writer).Encode(userExperience)
 }
 
 func (handler *UserExperienceHandler) AddXP(writer http.ResponseWriter, req *http.Request) {

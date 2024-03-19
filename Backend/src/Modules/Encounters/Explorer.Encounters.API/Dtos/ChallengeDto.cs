@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Explorer.Encounters.API.Dtos
 {
     public class ChallengeDto
     {
+        [JsonPropertyName("id")]
         public int Id { get; set; }
         public long CreatorId { get; set; }
         public string? Description { get; set; }
@@ -17,7 +19,7 @@ namespace Explorer.Encounters.API.Dtos
         public double Longitude { get; set; }
         public int Type { get; set; }
         public int ExperiencePoints { get; set; }
-        public Uri? Image { get; set; }
+        public string? Image { get; set; }
         public double? LatitudeImage { get; set; }
         public double? LongitudeImage { get; set; }
         public double Range { get; set; }

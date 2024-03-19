@@ -4,6 +4,7 @@ using Explorer.Encounters.API.Public;
 using Explorer.Tours.API.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Explorer.API.Controllers.Tourist.Execution
 {
@@ -12,17 +13,32 @@ namespace Explorer.API.Controllers.Tourist.Execution
     public class ChallengeExecutionController : BaseApiController
     {
         private readonly IChallengeExecutionService _challengeExecutionService;
+        private readonly IHttpClientFactory _factory;
 
-        public ChallengeExecutionController(IChallengeExecutionService challengeExecutionService)
+        public ChallengeExecutionController(IChallengeExecutionService challengeExecutionService, IHttpClientFactory factory)
         {
             _challengeExecutionService = challengeExecutionService;
+            _factory = factory;
         }
 
         [HttpGet]
-        public ActionResult<PagedResult<ChallengeExecutionDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
+
+        public async Task<ActionResult<PagedResult<ChallengeExecutionDto>>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _challengeExecutionService.GetPaged(page, pageSize);
-            return CreateResponse(result);
+            //var result = _challengeExecutionService.GetPaged(page, pageSize);
+
+            var client = _factory.CreateClient("encountersMicroservice");
+            using HttpResponseMessage response = await client.GetAsync("challengeExecution");
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            var userExperienceDto = JsonSerializer.Deserialize<ChallengeExecutionDto>(jsonResponse);
+
+            return Ok(userExperienceDto);
         }
 
 

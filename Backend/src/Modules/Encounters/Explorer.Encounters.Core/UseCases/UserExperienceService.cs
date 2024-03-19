@@ -33,7 +33,6 @@ namespace Explorer.Encounters.Core.UseCases
             dto.Id = userExperience.Id;
             dto.Level = userExperience.Level;
             return dto;
-
         }
 
         public Result<UserExperienceDto> GetByUserId(long userId)
