@@ -18,3 +18,12 @@ func (repo *ChallengeRepository) GetAll() ([]model.Challenge, error) {
 	}
 	return challenges, nil
 }
+
+func (repo *ChallengeRepository) Delete(id int) error {
+	dbResult := repo.DatabaseConnection.Unscoped().Delete(&model.Challenge{}, "id = ?", id)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Challenge deleted, with id: ", id)
+	return nil
+}

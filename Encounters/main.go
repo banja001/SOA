@@ -59,6 +59,7 @@ func initChallenges(router *mux.Router, database *gorm.DB) {
 	handler := &handler.ChallengeHandler{ChallengeService: service}
 
 	router.HandleFunc("/challenge", handler.GetAll).Methods("GET")
+	router.HandleFunc("/challenge/{id}", handler.Delete).Methods("DELETE")
 
 }
 

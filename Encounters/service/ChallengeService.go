@@ -17,3 +17,11 @@ func (service *ChallengeService) GetAll() ([]model.Challenge, error) {
 	}
 	return challenges, nil
 }
+
+func (service *ChallengeService) Delete(id int) error {
+	err := service.ChallengeRepository.Delete(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

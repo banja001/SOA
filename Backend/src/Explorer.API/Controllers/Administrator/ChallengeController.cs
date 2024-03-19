@@ -56,10 +56,19 @@ namespace Explorer.API.Controllers.Administrator
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = _challengeService.Delete(id);
-            return CreateResponse(result);
+            //var result = _challengeService.Delete(id);
+            var client = _factory.CreateClient("encountersMicroservice");
+            using HttpResponseMessage response = await client.DeleteAsync("challenge/" + id);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
     }
 }
