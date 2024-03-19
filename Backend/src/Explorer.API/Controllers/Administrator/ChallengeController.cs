@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Explorer.Tours.API.Dtos;
 using Explorer.Encounters.Core.UseCases;
+using System.Text.Json;
 
 namespace Explorer.API.Controllers.Administrator
 {
@@ -12,18 +13,32 @@ namespace Explorer.API.Controllers.Administrator
     [Route("api/administrator/challenge")]
     public class ChallengeController : BaseApiController
     {
-        private readonly IChallengeService _challengeService;
+        private readonly IChallengeService _challengeService; 
+        private readonly IHttpClientFactory _factory;
 
-        public ChallengeController(IChallengeService challengeService)
+        public ChallengeController(IChallengeService challengeService, IHttpClientFactory factory)
         {
             _challengeService = challengeService;
+            _factory = factory;
         }
 
         [HttpGet]
-        public ActionResult<PagedResult<ChallengeDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<ChallengeDto>>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _challengeService.GetPaged(page, pageSize);
-            return CreateResponse(result);
+            //var result = _challengeService.GetPaged(page, pageSize);
+            var client = _factory.CreateClient("encountersMicroservice");
+            using HttpResponseMessage response = await client.GetAsync("challenge");
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+
+            var challenges = JsonSerializer.Deserialize<List<ChallengeDto>>(jsonResponse);
+
+            return Ok(challenges);
         }
 
         [HttpPost]
