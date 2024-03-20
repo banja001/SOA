@@ -33,7 +33,7 @@ func (repo *UserExperienceRepository) Update(userExperience *model.UserExperienc
 	if dbResult.Error != nil {
 		return userExperience, dbResult.Error
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	println("User experience updated: ", dbResult.RowsAffected)
 	return userExperience, nil
 }
 
