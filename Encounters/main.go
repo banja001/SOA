@@ -52,6 +52,7 @@ func initUserExpirience(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/userxp/{userId}", handler.GetByUserId).Methods("GET")
 	router.HandleFunc("/userxp/add/{id}/{xp}", handler.AddXP).Methods("PUT")
 	router.HandleFunc("/userxp/create", handler.Create).Methods("POST")
+	router.HandleFunc("/userxp/delete/{id}", handler.Delete).Methods("DELETE")
 }
 
 func initChallenges(router *mux.Router, database *gorm.DB) {

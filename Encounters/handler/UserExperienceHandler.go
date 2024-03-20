@@ -74,3 +74,14 @@ func (handler *UserExperienceHandler) Create(writer http.ResponseWriter, req *ht
 		return
 	}
 }
+
+func (handler *UserExperienceHandler) Delete(writer http.ResponseWriter, req *http.Request) {
+	id := mux.Vars(req)["id"]
+	err := handler.UserExperienceService.Delete(id)
+	if err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application-json")
+}
