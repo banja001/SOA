@@ -57,10 +57,19 @@ namespace Explorer.API.Controllers.Tourist.Execution
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = _challengeExecutionService.Delete(id);
-            return CreateResponse(result);
+            //var result = _challengeExecutionService.Delete(id);
+            var client = _factory.CreateClient("encountersMicroservice");
+            using HttpResponseMessage response = await client.DeleteAsync("challenge-execution/" + id);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpPost("tour")]
