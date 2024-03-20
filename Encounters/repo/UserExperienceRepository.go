@@ -45,3 +45,12 @@ func (repo *UserExperienceRepository) FindByUserId(userId int) (model.UserExperi
 	}
 	return userExperience, nil
 }
+
+func (repo *UserExperienceRepository) Delete(id string) error {
+	dbResult := repo.DatabaseConnection.Unscoped().Delete(&model.UserExperience{}, "id = ?", id)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("User experience deleted: ", dbResult.RowsAffected)
+	return nil
+}

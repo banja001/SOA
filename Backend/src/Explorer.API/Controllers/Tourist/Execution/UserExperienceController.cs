@@ -60,10 +60,21 @@ namespace Explorer.API.Controllers.Tourist.Execution
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = _userExperienceService.Delete(id);
-            return CreateResponse(result);
+            //var result = _userExperienceService.Delete(id);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("encountersMicroservice");
+
+            using HttpResponseMessage response = await client.DeleteAsync("userxp/delete/" + id.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpGet("{userId:int}")]

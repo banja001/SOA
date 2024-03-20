@@ -37,3 +37,11 @@ func (service *UserExperienceService) Create(userExperience *model.UserExperienc
 	}
 	return createdUserExperience, nil
 }
+
+func (service *UserExperienceService) Delete(id string) error {
+	err := service.UserExperienceRepo.Delete(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
