@@ -3,6 +3,7 @@ using Explorer.BuildingBlocks.Core.UseCases;
 using Explorer.Encounters.API.Dtos;
 using Explorer.Encounters.API.Public;
 using Explorer.Encounters.Core.UseCases;
+using Explorer.Tours.Core.Domain.Tours;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,12 +36,9 @@ namespace Explorer.API.Controllers.Tourist.Execution
         {
             //var result = _userExperienceService.Create(userExperience);
             //return CreateResponse(result);
-
             var client = _factory.CreateClient("encountersMicroservice");
 
-            using HttpResponseMessage response = await client.PostAsJsonAsync(
-                "/userxp/create",
-                userExperience);
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/userxp/create", userExperience);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -52,11 +50,23 @@ namespace Explorer.API.Controllers.Tourist.Execution
             return Ok(jsonResponse);
         }
 
-        [HttpPut("{id:int}")]
-        public ActionResult<UserExperienceDto> Update([FromBody] UserExperienceDto userExperience)
+        [HttpPut]
+        public async Task<ActionResult<UserExperienceDto>> Update([FromBody] UserExperienceDto userExperience)
         {
-            var result = _userExperienceService.Update(userExperience);
-            return CreateResponse(result);
+            //var result = _userExperienceService.Update(userExperience);
+            //return CreateResponse(result);
+            var client = _factory.CreateClient("encountersMicroservice");
+            
+            using HttpResponseMessage response = await client.PutAsJsonAsync("/userxp/update", userExperience);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpDelete("{id:int}")]
@@ -81,8 +91,8 @@ namespace Explorer.API.Controllers.Tourist.Execution
         public async Task<ActionResult<PagedResult<UserExperienceDto>>> GetByUserId(int userId)
         {
             //var result = _userExperienceService.GetByUserId(userId);
-
             var client = _factory.CreateClient("encountersMicroservice");
+
             using HttpResponseMessage response = await client.GetAsync("userxp/" + userId.ToString());
             if (!response.IsSuccessStatusCode)
             {
@@ -100,7 +110,6 @@ namespace Explorer.API.Controllers.Tourist.Execution
         public async Task<ActionResult> AddXP(int id,int xp)
         {
             //var result = _userExperienceService.AddXP(id,xp);
-            
             var client = _factory.CreateClient("encountersMicroservice");
 
             using HttpResponseMessage response = await client.PutAsync("userxp/add/" + id.ToString() + "/" + xp.ToString(),  null);

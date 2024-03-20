@@ -28,13 +28,13 @@ func (repo *UserExperienceRepository) Create(userExperience *model.UserExperienc
 	return userExperience, nil
 }
 
-func (repo *UserExperienceRepository) Update(userExperience *model.UserExperience) error {
+func (repo *UserExperienceRepository) Update(userExperience *model.UserExperience) (*model.UserExperience, error) {
 	dbResult := repo.DatabaseConnection.Updates(userExperience)
 	if dbResult.Error != nil {
-		return dbResult.Error
+		return userExperience, dbResult.Error
 	}
 	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
+	return userExperience, nil
 }
 
 func (repo *UserExperienceRepository) FindByUserId(userId int) (model.UserExperience, error) {

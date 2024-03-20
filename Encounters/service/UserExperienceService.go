@@ -45,3 +45,11 @@ func (service *UserExperienceService) Delete(id string) error {
 	}
 	return nil
 }
+
+func (service *UserExperienceService) Update(userExperience *model.UserExperience) (*model.UserExperience, error) {
+	updatedUserExperience, err := service.UserExperienceRepo.Update(userExperience)
+	if err != nil {
+		return nil, err
+	}
+	return updatedUserExperience, nil
+}

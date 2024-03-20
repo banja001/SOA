@@ -85,3 +85,31 @@ func (handler *UserExperienceHandler) Delete(writer http.ResponseWriter, req *ht
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application-json")
 }
+
+func (handler *UserExperienceHandler) Update(writer http.ResponseWriter, req *http.Request) {
+	var userExperience model.UserExperience
+	err := json.NewDecoder(req.Body).Decode(&userExperience)
+
+	if err != nil {
+		println("Error while parsing json: Update user experience")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	updatedUserExperience, err := handler.UserExperienceService.Update(&userExperience)
+	
+	if err != nil {
+		println("Error while updating")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+	
+	if err := json.NewEncoder(writer).Encode(updatedUserExperience); err != nil {
+		println("Error while encoding user experience to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
