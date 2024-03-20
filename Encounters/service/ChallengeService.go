@@ -33,3 +33,11 @@ func (service *ChallengeService) Update(challenge *model.Challenge) (*model.Chal
 	}
 	return &updatedChallenge, nil
 }
+
+func (service *ChallengeService) Create(challenge *model.Challenge) (*model.Challenge, error) {
+	createdchallenge, err := service.ChallengeRepository.Create(challenge)
+	if err != nil {
+		return nil, err
+	}
+	return &createdchallenge, nil
+}

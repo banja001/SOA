@@ -36,3 +36,12 @@ func (repo *ChallengeRepository) Update(challenge *model.Challenge) (model.Chall
 	println("Challenge updated: ", challenge.ID)
 	return *challenge, nil
 }
+
+func (repo *ChallengeRepository) Create(challenge *model.Challenge) (model.Challenge, error) {
+	dbResult := repo.DatabaseConnection.Create(challenge)
+	if dbResult.Error != nil {
+		return *challenge, dbResult.Error
+	}
+	println("Challenge created: ", challenge.ID)
+	return *challenge, nil
+}

@@ -64,3 +64,26 @@ func (handler *ChallengeHandler) Update(writer http.ResponseWriter, req *http.Re
 		return
 	}
 }
+
+func (handler *ChallengeHandler) Create(writer http.ResponseWriter, req *http.Request) {
+	var challenge model.Challenge
+	err := json.NewDecoder(req.Body).Decode(&challenge)
+	if err != nil {
+		println("Error while parsing json: Create challenge")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	createdChallenge, err := handler.ChallengeService.Create(&challenge)
+	if err != nil {
+		println("Error while creating a new challenge")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(writer).Encode(createdChallenge); err != nil {
+		println("Error while encoding tour to JSON")
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

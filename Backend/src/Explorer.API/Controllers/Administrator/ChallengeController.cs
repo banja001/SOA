@@ -42,10 +42,19 @@ namespace Explorer.API.Controllers.Administrator
         }
 
         [HttpPost]
-        public ActionResult<ChallengeDto> Create([FromBody] ChallengeDto challengeDto)
+        public async Task<ActionResult<ChallengeDto>> Create([FromBody] ChallengeDto challengeDto)
         {
-            var result = _challengeService.Create(challengeDto);
-            return CreateResponse(result);
+            // var result = _challengeService.Create(challengeDto);
+            var client = _factory.CreateClient("encountersMicroservice");
+            using HttpResponseMessage response = await client.PostAsJsonAsync("challenge", challengeDto);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpPut("{id:int}")]
