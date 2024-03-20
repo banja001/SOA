@@ -29,11 +29,27 @@ namespace Explorer.API.Controllers.Tourist.Execution
             var result = _userExperienceService.GetPaged(page, pageSize);
             return CreateResponse(result);
         }
+
         [HttpPost]
-        public ActionResult<UserExperienceDto> Create([FromBody] UserExperienceDto userExperience)
+        public async Task<ActionResult<UserExperienceDto>> Create([FromBody] UserExperienceDto userExperience)
         {
-            var result = _userExperienceService.Create(userExperience);
-            return CreateResponse(result);
+            //var result = _userExperienceService.Create(userExperience);
+            //return CreateResponse(result);
+
+            var client = _factory.CreateClient("encountersMicroservice");
+
+            using HttpResponseMessage response = await client.PostAsJsonAsync(
+                "/userxp/create",
+                userExperience);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonResponse);
         }
 
         [HttpPut("{id:int}")]
@@ -50,7 +66,7 @@ namespace Explorer.API.Controllers.Tourist.Execution
             return CreateResponse(result);
         }
 
-        [HttpGet("userxp/{userId:int}")]
+        [HttpGet("{userId:int}")]
         public async Task<ActionResult<PagedResult<UserExperienceDto>>> GetByUserId(int userId)
         {
             //var result = _userExperienceService.GetByUserId(userId);
@@ -73,10 +89,10 @@ namespace Explorer.API.Controllers.Tourist.Execution
         public async Task<ActionResult> AddXP(int id,int xp)
         {
             //var result = _userExperienceService.AddXP(id,xp);
-            //return CreateResponse(result);
+            
             var client = _factory.CreateClient("encountersMicroservice");
 
-            using HttpResponseMessage response = await client.PutAsync("addxp/" + id.ToString() + "/" + xp.ToString(),  null);
+            using HttpResponseMessage response = await client.PutAsync("userxp/add/" + id.ToString() + "/" + xp.ToString(),  null);
         
             if (!response.IsSuccessStatusCode)
             {

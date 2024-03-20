@@ -19,6 +19,15 @@ func (repo *UserExperienceRepository) FindById(id int) (model.UserExperience, er
 	return userExperience, nil
 }
 
+func (repo *UserExperienceRepository) Create(userExperience *model.UserExperience) (*model.UserExperience, error) {
+	dbResult := repo.DatabaseConnection.Create(userExperience)
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+	println("User experience created: ", dbResult.RowsAffected)
+	return userExperience, nil
+}
+
 func (repo *UserExperienceRepository) Update(userExperience *model.UserExperience) error {
 	dbResult := repo.DatabaseConnection.Updates(userExperience)
 	if dbResult.Error != nil {

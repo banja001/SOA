@@ -35,6 +35,7 @@ func initDB() *gorm.DB {
 
 func startServer(database *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
+	
 	initUserExpirience(router, database)
 	initChallenges(router, database)
 
@@ -49,8 +50,8 @@ func initUserExpirience(router *mux.Router, database *gorm.DB) {
 	handler := &handler.UserExperienceHandler{UserExperienceService: service}
 
 	router.HandleFunc("/userxp/{userId}", handler.GetByUserId).Methods("GET")
-	router.HandleFunc("/addxp/{id}/{xp}", handler.AddXP).Methods("PUT")
-
+	router.HandleFunc("/userxp/add/{id}/{xp}", handler.AddXP).Methods("PUT")
+	router.HandleFunc("/userxp/create", handler.Create).Methods("POST")
 }
 
 func initChallenges(router *mux.Router, database *gorm.DB) {
