@@ -30,15 +30,19 @@ func initDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Error while running migration for challenges")
 	}
+	err = database.AutoMigrate(&model.ChallengeExecution{})
+	if err != nil {
+		log.Fatal("Error while running migration for challenges")
+	}
 	return database
 }
 
 func startServer(database *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
-	
+
 	initUserExpirience(router, database)
 	initChallenges(router, database)
-
+	initChallengeExecution(router, database)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
 	log.Fatal(http.ListenAndServe(":8090", router))
@@ -65,7 +69,13 @@ func initChallenges(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/challenge/{id}", handler.Delete).Methods("DELETE")
 	router.HandleFunc("/challenge", handler.Update).Methods("PUT")
 	router.HandleFunc("/challenge", handler.Create).Methods("POST")
+}
 
+func initChallengeExecution(router *mux.Router, database *gorm.DB) {
+	repo := &repo.ChallengeExecutionRepository{DatabaseConnection: database}
+	service := &service.ChallengeExecutionService{ChallengeExecutionRepository: repo}
+	handler := &handler.ChallengeExecutionHandler{ChallengeExecutionService: service}
+	router.HandleFunc("/challenge-execution/{id}", handler.Delete).Methods("DELETE")
 }
 
 func main() {
