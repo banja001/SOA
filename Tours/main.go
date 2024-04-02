@@ -14,7 +14,7 @@ import (
 )
 
 func initDB() *gorm.DB {
-	connectionStr := "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
+	connectionStr := "host=database user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: connectionStr,
 	}), &gorm.Config{})
@@ -47,7 +47,7 @@ func startServer(database *gorm.DB) {
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":80", router))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func initTourKeypoints(router *mux.Router, database *gorm.DB) {
