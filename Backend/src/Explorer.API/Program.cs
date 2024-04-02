@@ -2,6 +2,8 @@ using Explorer.API.Startup;
 using Explorer.Stakeholders.Core.Domain;
 
 using Explorer.Stakeholders.Core.UseCases;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +21,7 @@ builder.Services.AddHostedService(
 
 builder.Services.AddHttpClient("toursMicroservice", (client) =>
 {
-    client.BaseAddress = new Uri("http://localhost:80");
+    client.BaseAddress = new Uri("http://localhost:8080");
 });
 
 builder.Services.AddHttpClient("encountersMicroservice", (client) =>
@@ -33,17 +35,17 @@ builder.Services.AddSignalR(o =>
 });
 var app = builder.Build();
 
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseDeveloperExceptionPage();
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-//else
-//{
-//    app.UseExceptionHandler("/error");
-//    app.UseHsts();
-//}
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
 
 app.UseRouting();
 app.UseCors(corsPolicy);

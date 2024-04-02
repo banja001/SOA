@@ -14,7 +14,7 @@ import (
 )
 
 func initDB() *gorm.DB {
-	connectionStr := "host=localhost user=postgres password=super dbname=encountersdb port=5432 sslmode=disable"
+	connectionStr := "host=database user=postgres password=super dbname=encountersdb port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: connectionStr,
 	}), &gorm.Config{})
@@ -57,7 +57,7 @@ func initUserExpirience(router *mux.Router, database *gorm.DB) {
 	router.HandleFunc("/userxp/add/{id}/{xp}", handler.AddXP).Methods("PUT")
 	router.HandleFunc("/userxp/create", handler.Create).Methods("POST")
 	router.HandleFunc("/userxp/delete/{id}", handler.Delete).Methods("DELETE")
-	router.HandleFunc("/userxp/update",  handler.Update).Methods("PUT")
+	router.HandleFunc("/userxp/update", handler.Update).Methods("PUT")
 }
 
 func initChallenges(router *mux.Router, database *gorm.DB) {

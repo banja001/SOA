@@ -4,34 +4,34 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: tours_microservice
-    container_name: tours
+    image: encounters_microservice
+    container_name: encounters
     restart: always
     networks:
       - servers
     ports:
-      - 8080:8080
+      - 8090:8090
     depends_on:
       - database
   
   database:
     image: postgres:13
-    container_name: tours_db
+    container_name: encounters_db
     restart: always
     networks:
       - servers
     ports:
-      - 5432:5432
+      - 5433:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: super
-      POSTGRES_DB: tourdb
+      POSTGRES_DB: encountersdb
     volumes:
       - database-data:/var/lib/postgresql/data
 
 volumes:
   database-data:
-    name: server-database-tour
+    name: server-database
 
 networks:
   servers:
