@@ -22,6 +22,10 @@ builder.Services.AddHttpClient("toursMicroservice", (client) =>
     client.BaseAddress = new Uri("http://localhost:80");
 });
 
+builder.Services.AddHttpClient("encountersMicroservice", (client) =>
+{
+    client.BaseAddress = new Uri("http://localhost:8090");
+});
 
 builder.Services.AddSignalR(o =>
 {
@@ -29,17 +33,17 @@ builder.Services.AddSignalR(o =>
 });
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseExceptionHandler("/error");
-    app.UseHsts();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseDeveloperExceptionPage();
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+//else
+//{
+//    app.UseExceptionHandler("/error");
+//    app.UseHsts();
+//}
 
 app.UseRouting();
 app.UseCors(corsPolicy);
