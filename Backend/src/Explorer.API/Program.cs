@@ -51,7 +51,7 @@ app.UseRouting();
 app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
 app.UseAuthorization();
-app.UseAuthorization();
+//app.UseAuthentication();
 
 app.MapHub<PublicSiteHub>("hub");
 app.MapControllers();

@@ -37,8 +37,9 @@ namespace Explorer.API.Controllers.Administrator
 
 
             var challenges = JsonSerializer.Deserialize<List<ChallengeDto>>(jsonResponse);
+            PagedResult<ChallengeDto> chs = new PagedResult<ChallengeDto>(challenges,challenges.Count);
 
-            return Ok(challenges);
+            return Ok(chs);
         }
 
         [HttpPost]
