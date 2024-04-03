@@ -7,14 +7,25 @@ import (
 	"database-example/service"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+func GetConnectionString() string {
+	connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
+	if isPresent {
+		return connectionString
+	} else {
+		return "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
+	}
+
+}
+
 func initDB() *gorm.DB {
-	connectionStr := "host=database user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
+	connectionStr := GetConnectionString()
 	database, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: connectionStr,
 	}), &gorm.Config{})

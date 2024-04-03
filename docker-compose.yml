@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+
+  explorer:
+    build:
+      context: ./Backend/
+      target: final
+    networks:
+      - database
+    ports:
+      - "44333:80"
+    restart: on-failure
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5433
+      DATABASE_PASSWORD: super
+      DATABASE_USER: postgres
+      DATABASE_SCHEMA: explorer
+      GO_TOUR_SERVICE_HOST: go-tour-service
+      GO_ENCOUNTERS_SERVICE_HOST: go-encounter-service
+    depends_on:
+      - db
+      - go-tour-service
+      - go-encounter-service
+
+  go-encounter-service:
+    build:
+      context: ./Encounters/
+    ports:
+      - "8090:8090"
+    restart: on-failure
+    networks:
+      - database
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5433 sslmode=disable
+
+  go-tour-service:
+    build:
+      context: ./Tours/
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    networks:
+      - database
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL2=host=db user=postgres password=super dbname=tourdb port=5433 sslmode=disable
+
+  db:
+    image: postgres:latest
+    restart: always
+    networks:
+      - database
+    ports:
+      - "5433:5433"
+    volumes:
+      - ./db_init.sh:/docker-entrypoint-initdb.d/db_init.sh
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: super
+      POSTGRES_MULTIPLE_DATABASES: tourdb,explorer,encountersdb
+      PGPORT: 5433
+
+networks:
+  database:
+    name: database
+    driver: bridge
+
