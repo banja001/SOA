@@ -46,9 +46,10 @@ services:
     networks:
       - database
     depends_on:
-      - db
+      mongo:
+        condition: service_healthy
     environment:
-      - DATABASE_URL2=host=db user=postgres password=super dbname=tourdb port=5433 sslmode=disable
+     - MONGO_DB_URI=mongodb://root:pass@mongo:27017
 
   db:
     image: postgres:latest
@@ -68,8 +69,50 @@ services:
       POSTGRES_MULTIPLE_DATABASES: tourdb,explorer,encountersdb
       PGPORT: 5433
 
+   # NoSQL: MongoDB
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - mongo_store:/data/db
+
+  # NoSQL: MognoExpress
+  mongo-express:
+    image: mongo-express
+    restart: always
+    environment:
+      # hostname of mongo databse
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017/
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    volumes:
+      - mongo_express_data:/data/db
+
+volumes:
+  mongo_store:
+  mongo_express_data:
+
 networks:
   database:
     name: database
     driver: bridge
+
 
