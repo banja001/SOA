@@ -1,84 +1,30 @@
 package model
 
 import (
-	"database/sql/driver"
-	"errors"
-	"fmt"
-	"strconv"
-	"strings"
+	"encoding/json"
+	"io"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-type ArrayValue []interface{}
-
-func (a *ArrayValue) Scan(value interface{}) error {
-	if value == nil {
-		*a = []interface{}{}
-		return nil
-	}
-
-	switch v := value.(type) {
-	case string:
-		str := strings.TrimPrefix(v, "{")
-		str = strings.TrimSuffix(str, "}")
-		strValues := strings.Split(str, ",")
-		var valueSlice []interface{}
-		for _, strValue := range strValues {
-			strValue = strings.TrimSpace(strValue)
-			if strValue == "" {
-				continue
-			}
-			intValue, err := strconv.Atoi(strValue)
-			if err == nil {
-				valueSlice = append(valueSlice, intValue)
-			} else {
-				valueSlice = append(valueSlice, strValue)
-			}
-		}
-		*a = valueSlice
-	case []interface{}:
-		*a = v
-	default:
-		return errors.New("failed to scan ArrayValue: unexpected type")
-	}
-
-	return nil
-}
-
-func (a ArrayValue) Value() (driver.Value, error) {
-	var strArray []string
-	for _, v := range a {
-		strArray = append(strArray, fmt.Sprintf("%v", v))
-	}
-	return "{" + strings.Join(strArray, ",") + "}", nil
-}
 
 type Tour struct {
-	ID            int            `json:"Id" gorm:"primary_key"`
-	Name          string         `json:"Name" gorm:"not null;type:text"`
-	Description   string         `json:"Description" gorm:"not null;type:text"`
-	Difficulty    TourDifficulty `json:"Difficulty" gorm:"type:integer"`
-	Tags          ArrayValue     `json:"Tags" gorm:"not null;type:text[]"`
-	Status        TourStatus     `json:"Status" gorm:"type:integer"`
-	Price         float64        `json:"Price"`
-	AuthorId      int            `json:"AuthorId" gorm:"type:integer"`
-	Equipment     ArrayValue     `json:"Equipment" gorm:"type:integer[]"`
-	DistanceInKm  float64        `json:"DistanceInKm"`
-	ArchivedDate  *time.Time     `json:"ArchivedDate"`
-	PublishedDate *time.Time     `json:"PublishedDate"`
-	Durations     TourDurations  `json:"Durations" gorm:"type:jsonb"`
-	KeyPoints     []TourKeypoint `json:"KeyPoints" gorm:"-"`
-	Image         string         `json:"Image" gorm:"type:text"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name          string             `bson:"name" json:"name"`
+	Description   string             `bson:"description" json:"description"`
+	Difficulty    TourDifficulty     `bson:"difficulty" json:"difficulty"`
+	Tags          []string           `bson:"tags" json:"tags"`
+	Status        TourStatus         `bson:"status" json:"status"`
+	Price         float64            `bson:"price" json:"price"`
+	AuthorId      int                `bson:"authorId" json:"authorId"`
+	Equipment     []string           `bson:"equipment" json:"equipment"`
+	DistanceInKm  float64            `bson:"distanceInKm" json:"distanceInKm"`
+	ArchivedDate  *time.Time         `bson:"archivedDate,omitempty" json:"archivedDate"`
+	PublishedDate *time.Time         `bson:"publishedDate,omitempty" json:"publishedDate"`
+	Durations     TourDurations      `bson:"durations" json:"durations"`
+	KeyPoints     []TourKeypoint     `bson:"keyPoints" json:"keyPoints"`
+	Image         string             `bson:"image" json:"image"`
 }
-
-type TourStatus int
-
-const (
-	Draft TourStatus = iota
-	Published
-	Archived
-	TouristMade
-)
 
 type TourDifficulty int
 
@@ -89,6 +35,21 @@ const (
 	Pro
 )
 
-func (Tour) TableName() string {
-	return "Tour"
+type TourStatus int
+
+const (
+	Draft TourStatus = iota
+	Published
+	Archived
+	TouristMade
+)
+
+func (p *Tour) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
+func (p *Tour) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(p)
 }

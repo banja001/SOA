@@ -45,11 +45,14 @@ services:
     restart: on-failure
     networks:
       - database
+    environment:
+      # protocol://username:password@hostname:port
+      - MONGO_DB_URI=mongodb://root:pass@mongo:27017
+      # - MONGO_DB_URI=mongodb://mongo:27017
     depends_on:
       mongo:
         condition: service_healthy
-    environment:
-     - MONGO_DB_URI=mongodb://root:pass@mongo:27017
+
 
   db:
     image: postgres:latest
@@ -69,7 +72,6 @@ services:
       POSTGRES_MULTIPLE_DATABASES: tourdb,explorer,encountersdb
       PGPORT: 5433
 
-   # NoSQL: MongoDB
   mongo:
     image: mongo
     restart: always
@@ -87,12 +89,10 @@ services:
     volumes:
       - mongo_store:/data/db
 
-  # NoSQL: MognoExpress
   mongo-express:
     image: mongo-express
     restart: always
     environment:
-      # hostname of mongo databse
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
       - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
@@ -114,5 +114,3 @@ networks:
   database:
     name: database
     driver: bridge
-
-
