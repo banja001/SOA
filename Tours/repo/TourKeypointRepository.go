@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -57,6 +58,7 @@ func (repo *TourKeypointRepository) Create(tourKeypoint *model.TourKeypoint) (mo
 	// if err != nil {
 	// 	return err
 	// }
+	fmt.Printf("Created tourKeypoint:")
 	return *tourKeypoint, err
 }
 

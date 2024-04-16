@@ -29,6 +29,7 @@ func (repo *TourRepository) Create(tour *model.Tour) (*model.Tour, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return tour, nil
 }
 

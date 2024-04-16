@@ -4,6 +4,7 @@ import (
 	"database-example/handler"
 	"database-example/repo"
 	"database-example/service"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func GetConnectionString() string {
@@ -68,7 +68,7 @@ func startServer(database *mongo.Client) {
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8082", router))
 }
 
 func initTourKeypoints(router *mux.Router, client *mongo.Client) {
@@ -121,26 +121,30 @@ func initTours(router *mux.Router, client *mongo.Client) {
 // }
 
 func main() {
-	connectionStr := GetConnectionString() // Ensure this actually retrieves your MongoDB connection string
-	client, err := mongo.NewClient(options.Client().ApplyURI(connectionStr))
+	connectionStr := GetConnectionString()
+	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
+
+	opts := options.Client().ApplyURI(connectionStr)
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
+		}
+	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
+	// Check MongoDB connection
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	if err := client.Connect(ctx); err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
-	}
 
 	if err := client.Ping(ctx, nil); err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
 
 	log.Println("Connected to MongoDB")
-	defer client.Disconnect(ctx)
-	client.Ping(ctx, readpref.Primary())
-	startServer(client)
 
+	// Start HTTP server
+	startServer(client)
 }
