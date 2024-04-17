@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 	"database-example/model"
+	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,12 +26,16 @@ func (repo *TourRepository) FindById(id string) (model.Tour, error) {
 }
 
 func (repo *TourRepository) Create(tour *model.Tour) (*model.Tour, error) {
-	collection := repo.DatabaseConnection.Database("yourDBName").Collection("tours")
-	_, err := collection.InsertOne(context.Background(), tour)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	toursCollection := repo.getCollection()
+	result, err := toursCollection.InsertOne(ctx, &tour)
 	if err != nil {
+		log.Println("err")
 		return nil, err
 	}
 
+	log.Printf("Documents ID: %v\n", result.InsertedID)
 	return tour, nil
 }
 
@@ -73,4 +79,10 @@ func (repo *TourRepository) FindByAuthorId(authorID string) ([]model.Tour, error
 		return nil, err
 	}
 	return tours, nil
+}
+
+func (repo *TourRepository) getCollection() *mongo.Collection {
+	toursDatabase := repo.DatabaseConnection.Database("mongoDemo")
+	toursCollection := toursDatabase.Collection("tours")
+	return toursCollection
 }

@@ -17,23 +17,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetConnectionString() string {
-	// connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
-	// if isPresent {
-	// 	return connectionString
-	// } else {
-	// 	return "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
-	// }
-
-	connectionString, isPresent := os.LookupEnv("MONGO_DB_URI")
-	if isPresent {
-		return connectionString
-	} else {
-		return "mongodb://localhost:27017"
-	}
-
-}
-
 // func initDB() *gorm.DB {
 // 	connectionStr := GetConnectionString()
 // 	database, err := gorm.Open(postgres.New(postgres.Config{
@@ -82,19 +65,6 @@ func initTourKeypoints(router *mux.Router, client *mongo.Client) {
 	router.HandleFunc("/tourKeypoints/delete/{id}", handler.Delete).Methods("DELETE")
 }
 
-// func initTours(router *mux.Router, database *gorm.DB) {
-// 	repo := &repo.TourRepository{DatabaseConnection: database}
-// 	service := &service.TourService{TourRepo: repo}
-// 	handler := &handler.TourHandler{TourService: service}
-
-// 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
-// 	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
-// 	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
-// 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
-// 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
-// 	router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
-// 	router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
-// }
 
 func initTours(router *mux.Router, client *mongo.Client) {
 	repo := &repo.TourRepository{DatabaseConnection: client}
@@ -120,7 +90,24 @@ func initTours(router *mux.Router, client *mongo.Client) {
 // 	router.HandleFunc("/sessions/completeKeypoint/{sessionId}", handler.CompleteKeypoint).Methods("PUT")
 // }
 
-func main() {
+func GetConnectionString() string {
+	// connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
+	// if isPresent {
+	// 	return connectionString
+	// } else {
+	// 	return "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
+	// }
+
+	connectionString, isPresent := os.LookupEnv("MONGO_DB_URI")
+	if isPresent {
+		return connectionString
+	} else {
+		return "mongodb://localhost:27017"
+	}
+
+}
+
+func initDB() *mongo.Client {
 	connectionStr := GetConnectionString()
 	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
 
@@ -129,6 +116,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
+
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
 			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
@@ -144,7 +132,11 @@ func main() {
 	}
 
 	log.Println("Connected to MongoDB")
+	return client
+}
 
-	// Start HTTP server
+func main() {
+	client := initDB()
+
 	startServer(client)
 }
