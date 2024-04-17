@@ -18,12 +18,6 @@ import (
 )
 
 func GetConnectionString() string {
-	// connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
-	// if isPresent {
-	// 	return connectionString
-	// } else {
-	// 	return "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
-	// }
 
 	connectionString, isPresent := os.LookupEnv("MONGO_DB_URI")
 	if isPresent {
@@ -34,36 +28,10 @@ func GetConnectionString() string {
 
 }
 
-// func initDB() *gorm.DB {
-// 	connectionStr := GetConnectionString()
-// 	database, err := gorm.Open(postgres.New(postgres.Config{
-// 		DSN: connectionStr,
-// 	}), &gorm.Config{})
-// 	if err != nil {
-// 		print(err)
-// 		return nil
-// 	}
-
-// 	err = database.AutoMigrate(&model.Tour{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for tours")
-// 	}
-// 	err = database.AutoMigrate(&model.TourKeypoint{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for tour keypoints")
-// 	}
-// 	err = database.AutoMigrate(&model.Session{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for sessions")
-// 	}
-// 	return database
-// }
-
-func startServer(database *mongo.Client) {
+func startServer(client *mongo.Client) {
 	router := mux.NewRouter().StrictSlash(true)
-
-	initTourKeypoints(router, database)
-	initTours(router, database)
+	initTourKeypoints(router, client)
+	//initTours(router, database)
 	//initSessions(router, database)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
@@ -75,7 +43,6 @@ func initTourKeypoints(router *mux.Router, client *mongo.Client) {
 	repo := &repo.TourKeypointRepository{DatabaseConnection: client}
 	service := &service.TourKeypointService{TourKeypointRepo: repo}
 	handler := &handler.TourKeypointHandler{TourKeypointService: service}
-
 	router.HandleFunc("/tourKeypoints/{id}", handler.Get).Methods("GET")
 	router.HandleFunc("/tourKeypoints/create", handler.Create).Methods("POST")
 	router.HandleFunc("/tourKeypoints/update", handler.Update).Methods("PUT")
@@ -96,19 +63,19 @@ func initTourKeypoints(router *mux.Router, client *mongo.Client) {
 // 	router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
 // }
 
-func initTours(router *mux.Router, client *mongo.Client) {
-	repo := &repo.TourRepository{DatabaseConnection: client}
-	service := &service.TourService{TourRepo: repo}
-	handler := &handler.TourHandler{TourService: service}
+// func initTours(router *mux.Router, client *mongo.Client) {
+// 	repo := &repo.TourRepository{DatabaseConnection: client}
+// 	service := &service.TourService{TourRepo: repo}
+// 	handler := &handler.TourHandler{TourService: service}
 
-	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
-	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
-	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
-	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
-	//router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
-	//router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
-}
+// 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
+// 	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
+// 	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
+// 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
+// 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
+// 	//router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
+// 	//router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
+// }
 
 // func initSessions(router *mux.Router, database *gorm.DB) {
 // 	repo := &repo.SessionRepository{DatabaseConnection: database}
@@ -123,7 +90,6 @@ func initTours(router *mux.Router, client *mongo.Client) {
 func main() {
 	connectionStr := GetConnectionString()
 	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
-
 	opts := options.Client().ApplyURI(connectionStr)
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
@@ -135,7 +101,6 @@ func main() {
 		}
 	}()
 
-	// Check MongoDB connection
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -145,6 +110,5 @@ func main() {
 
 	log.Println("Connected to MongoDB")
 
-	// Start HTTP server
 	startServer(client)
 }

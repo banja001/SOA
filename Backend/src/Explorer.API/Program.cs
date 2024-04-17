@@ -22,7 +22,7 @@ builder.Services.AddHostedService(
 builder.Services.AddHttpClient("toursMicroservice", (client) =>
 {
     var service = Environment.GetEnvironmentVariable("GO_TOUR_SERVICE_HOST") ?? "localhost";
-    client.BaseAddress = new Uri($"http://{service}:8080");
+    client.BaseAddress = new Uri($"http://{service}:8082");
 });
 
 builder.Services.AddHttpClient("encountersMicroservice", (client) =>
