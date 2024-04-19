@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database-example/model"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -72,13 +73,16 @@ func (repo *TourKeypointRepository) Update(tourKeypoint *model.TourKeypoint) (mo
 		"PublicPointID":  tourKeypoint.PublicPointID,
 	}}
 
-	result, err := tourKeyPointsCollection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Printf("Failed to update tourKeypoint: %v", err)
-		return model.TourKeypoint{}, err
-	}
+	result, _ := tourKeyPointsCollection.UpdateOne(ctx, filter, update)
 
+	if result.MatchedCount == 0 {
+		return model.TourKeypoint{}, fmt.Errorf("no tourKeypoint found with ID: %d", tourKeypoint.ID)
+	}
 	log.Printf("Documents matched: %v\n", result.MatchedCount)
+
+	if result.ModifiedCount == 0 {
+		return model.TourKeypoint{}, fmt.Errorf("no tourKeypoint found with ID: %d", tourKeypoint.ID)
+	}
 	log.Printf("Documents updated: %v\n", result.ModifiedCount)
 
 	return *tourKeypoint, nil
@@ -96,7 +100,13 @@ func (repo *TourKeypointRepository) Delete(id string) error {
 		log.Println(err)
 		return err
 	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("no tourKeypoint found with ID: %s", id)
+	}
+
 	log.Printf("Documents deleted: %v\n", result.DeletedCount)
+
 	return nil
 }
 
