@@ -4,6 +4,7 @@ import (
 	"database-example/model"
 	"database-example/service"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,10 +22,10 @@ func (handler *TourKeypointHandler) Get(writer http.ResponseWriter, req *http.Re
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
+	fmt.Printf("sss:")
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(tourKeypoint)
 }
-
 
 func (handler *TourKeypointHandler) Create(writer http.ResponseWriter, req *http.Request) {
 	var tourKeypoint model.TourKeypoint
