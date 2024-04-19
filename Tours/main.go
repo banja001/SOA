@@ -17,34 +17,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-<<<<<<< HEAD
-// func initDB() *gorm.DB {
-// 	connectionStr := GetConnectionString()
-// 	database, err := gorm.Open(postgres.New(postgres.Config{
-// 		DSN: connectionStr,
-// 	}), &gorm.Config{})
-// 	if err != nil {
-// 		print(err)
-// 		return nil
-// 	}
-
-// 	err = database.AutoMigrate(&model.Tour{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for tours")
-// 	}
-// 	err = database.AutoMigrate(&model.TourKeypoint{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for tour keypoints")
-// 	}
-// 	err = database.AutoMigrate(&model.Session{})
-// 	if err != nil {
-// 		log.Fatal("Error while running migration for sessions")
-// 	}
-// 	return database
-// }
-
-func startServer(database *mongo.Client) {
-=======
 func GetConnectionString() string {
 
 	connectionString, isPresent := os.LookupEnv("MONGO_DB_URI")
@@ -57,10 +29,14 @@ func GetConnectionString() string {
 }
 
 func startServer(client *mongo.Client) {
->>>>>>> f9b3d4a0f6553c4a0a5dc3938d5f68b9192aa779
 	router := mux.NewRouter().StrictSlash(true)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := client.Ping(ctx, nil); err != nil {
+		log.Fatalf("Failed to ping MongoDB: %v", err)
+	}
 	initTourKeypoints(router, client)
-	//initTours(router, database)
+	initTours(router, client)
 	//initSessions(router, database)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
@@ -79,19 +55,19 @@ func initTourKeypoints(router *mux.Router, client *mongo.Client) {
 }
 
 
-// func initTours(router *mux.Router, client *mongo.Client) {
-// 	repo := &repo.TourRepository{DatabaseConnection: client}
-// 	service := &service.TourService{TourRepo: repo}
-// 	handler := &handler.TourHandler{TourService: service}
+func initTours(router *mux.Router, client *mongo.Client) {
+	repo := &repo.TourRepository{DatabaseConnection: client}
+	service := &service.TourService{TourRepo: repo}
+	handler := &handler.TourHandler{TourService: service}
 
-// 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
-// 	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
-// 	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
-// 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
-// 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
-// 	//router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
-// 	//router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
-// }
+	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
+	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
+	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
+	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
+	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
+	//router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
+	//router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
+}
 
 // func initSessions(router *mux.Router, database *gorm.DB) {
 // 	repo := &repo.SessionRepository{DatabaseConnection: database}
@@ -103,22 +79,6 @@ func initTourKeypoints(router *mux.Router, client *mongo.Client) {
 // 	router.HandleFunc("/sessions/completeKeypoint/{sessionId}", handler.CompleteKeypoint).Methods("PUT")
 // }
 
-func GetConnectionString() string {
-	// connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
-	// if isPresent {
-	// 	return connectionString
-	// } else {
-	// 	return "host=localhost user=postgres password=super dbname=tourdb port=5432 sslmode=disable"
-	// }
-
-	connectionString, isPresent := os.LookupEnv("MONGO_DB_URI")
-	if isPresent {
-		return connectionString
-	} else {
-		return "mongodb://localhost:27017"
-	}
-
-}
 
 func initDB() *mongo.Client {
 	connectionStr := GetConnectionString()
@@ -147,7 +107,30 @@ func initDB() *mongo.Client {
 }
 
 func main() {
-	client := initDB()
+	//client := initDB()
+
+	connectionStr := GetConnectionString()
+	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
+	opts := options.Client().ApplyURI(connectionStr)
+	client, err := mongo.Connect(context.TODO(), opts)
+	if err != nil {
+		log.Fatalf("Failed to create MongoDB client: %v", err)
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
+		}
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := client.Ping(ctx, nil); err != nil {
+		log.Fatalf("Failed to ping MongoDB: %v", err)
+	}
+
+	log.Println("Connected to MongoDB")
 
 	startServer(client)
 }

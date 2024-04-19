@@ -37,7 +37,7 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 	createdTour, err := handler.TourService.Create(&tour)
 	if err != nil {
 		println("Error while creating a new tour")
-		writer.WriteHeader(http.StatusExpectationFailed)
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
