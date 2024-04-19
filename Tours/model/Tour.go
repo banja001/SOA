@@ -7,21 +7,21 @@ import (
 )
 
 type Tour struct {
-	ID            int				 `json:"id,omitempty" bson:"_id,omitempty"`
-	Name          string             `json:"name,omitempty" bson:"name,omitempty"`
-	Description   string             `json:"description,omitempty" bson:"description,omitempty"`
-	Difficulty    TourDifficulty     `json:"difficulty,omitempty" bson:"difficulty,omitempty"`
-	Tags          []string           `json:"tags,omitempty" bson:"tags,omitempty"`
-	Status        TourStatus         `json:"status,omitempty" bson:"status,omitempty"`
-	Price         float64            `json:"price,omitempty" bson:"price,omitempty"`
-	AuthorId      int                `json:"authorId,omitempty" bson:"authorId,omitempty"`
-	Equipment     []string           `json:"equipment,omitempty" bson:"equipment,omitempty"`
-	DistanceInKm  float64            `json:"distanceInKm,omitempty" bson:"distance,omitempty"`
-	ArchivedDate  *time.Time         `json:"archivedDate,omitempty" bson:"archived,omitempty"`
-	PublishedDate *time.Time         `json:"publishedDate,omitempty" bson:"published,omitempty"`
-	Durations     TourDurations      `json:"durations,omitempty" bson:"durations,omitempty"`
-	KeyPoints     []TourKeypoint     `json:"keyPoints,omitempty" bson:"keypoints,omitempty"`
-	Image         string             `json:"image,omitempty" bson:"image,omitempty"`
+	ID            int				 `json:"Id,omitempty" bson:"_id,omitempty"`
+	Name          string             `json:"Name,omitempty" bson:"name,omitempty"`
+	Description   string             `json:"Description,omitempty" bson:"description,omitempty"`
+	Difficulty    TourDifficulty     `json:"Difficulty,omitempty" bson:"difficulty,omitempty"`
+	Tags          []string           `json:"Tags,omitempty" bson:"tags,omitempty"`
+	Status        TourStatus         `json:"Status,omitempty" bson:"status,omitempty"`
+	Price         float64            `json:"Price,omitempty" bson:"price,omitempty"`
+	AuthorId      int                `json:"AuthorId,omitempty" bson:"authorId,omitempty"`
+	Equipment     []string           `json:"Equipment,omitempty" bson:"equipment,omitempty"`
+	DistanceInKm  float64            `json:"DistanceInKm,omitempty" bson:"distance,omitempty"`
+	ArchivedDate  *time.Time         `json:"ArchivedDate,omitempty" bson:"archived,omitempty"`
+	PublishedDate *time.Time         `json:"PublishedDate,omitempty" bson:"published,omitempty"`
+	Durations     TourDurations      `json:"Durations,omitempty" bson:"durations,omitempty"`
+	KeyPoints     []TourKeypoint     `json:"KeyPoints,omitempty" bson:"keypoints,omitempty"`
+	Image         string             `json:"Image,omitempty" bson:"image,omitempty"`
 }
 
 type TourDifficulty int

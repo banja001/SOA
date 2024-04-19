@@ -30,14 +30,10 @@ func GetConnectionString() string {
 
 func startServer(client *mongo.Client) {
 	router := mux.NewRouter().StrictSlash(true)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatalf("Failed to ping MongoDB: %v", err)
-	}
+
 	initTourKeypoints(router, client)
 	initTours(router, client)
-	//initSessions(router, database)
+	initSessions(router, client)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
@@ -62,53 +58,23 @@ func initTours(router *mux.Router, client *mongo.Client) {
 
 	router.HandleFunc("/tours/{id}", handler.Get).Methods("GET")
 	router.HandleFunc("/tours/create", handler.Create).Methods("POST")
-	router.HandleFunc("/tours", handler.GetAll).Methods("GET")
 	router.HandleFunc("/tours/update", handler.Update).Methods("PUT")
 	router.HandleFunc("/tours/author/{id}", handler.GetByAuthorId).Methods("GET")
-	//router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
-	//router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
+	router.HandleFunc("/tours/publish/{id}", handler.Publish).Methods("PUT")
+	router.HandleFunc("/tours/archive/{id}", handler.Archive).Methods("PUT")
 }
 
-// func initSessions(router *mux.Router, database *gorm.DB) {
-// 	repo := &repo.SessionRepository{DatabaseConnection: database}
-// 	service := &service.SessionService{SessionRepo: repo}
-// 	handler := &handler.SessionHandler{SessionService: service}
+func initSessions(router *mux.Router, client *mongo.Client) {
+	repo := &repo.SessionRepository{DatabaseConnection: client}
+	service := &service.SessionService{SessionRepo: repo}
+	handler := &handler.SessionHandler{SessionService: service}
 
-// 	router.HandleFunc("/sessions/create", handler.Create).Methods("POST")
-// 	router.HandleFunc("/sessions/update", handler.Update).Methods("PUT")
-// 	router.HandleFunc("/sessions/completeKeypoint/{sessionId}", handler.CompleteKeypoint).Methods("PUT")
-// }
-
-
-func initDB() *mongo.Client {
-	connectionStr := GetConnectionString()
-	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
-	opts := options.Client().ApplyURI(connectionStr)
-	client, err := mongo.Connect(context.TODO(), opts)
-	if err != nil {
-		log.Fatalf("Failed to create MongoDB client: %v", err)
-	}
-
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
-		}
-	}()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatalf("Failed to ping MongoDB: %v", err)
-	}
-
-	log.Println("Connected to MongoDB")
-	return client
+	router.HandleFunc("/sessions/create", handler.Create).Methods("POST")
+	router.HandleFunc("/sessions/update", handler.Update).Methods("PUT")
+	router.HandleFunc("/sessions/completeKeypoint/{sessionId}", handler.CompleteKeypoint).Methods("PUT")
 }
 
 func main() {
-	//client := initDB()
-
 	connectionStr := GetConnectionString()
 	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
 	opts := options.Client().ApplyURI(connectionStr)

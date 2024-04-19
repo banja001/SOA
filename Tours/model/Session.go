@@ -5,15 +5,15 @@ import (
 )
 
 type Session struct {
-	ID                     int                `json:"Id" gorm:"primary_key"`
-	TourId                 int                `json:"TourId" gorm:"type:integer"`
-	TouristId              int                `json:"TouristId" gorm:"type:integer"`
-	LocationId             int                `json:"LocationId" gorm:"type:integer"`
-	SessionStatus          SessionStatus      `json:"SessionStatus" gorm:"type:integer"`
-	Transportation         int                `json:"Transportation" gorm:"type:integer"`
-	DistanceCrossedPercent int                `json:"DistanceCrossedPercent" gorm:"type:integer"`
-	LastActivity           *time.Time         `json:"LastActivity"`
-	CompletedKeyPoints     CompletedKeyPoints `json:"CompletedKeyPoints" gorm:"type:jsonb"`
+	ID                     int                `json:"Id" bson:"_id,omitempty"`
+	TourId                 int                `json:"TourId" bson:"tourId,omitempty"`
+	TouristId              int                `json:"TouristId" bson:"touristId,omitempty"`
+	LocationId             int                `json:"LocationId" bson:"locationId,omitempty"`
+	SessionStatus          SessionStatus      `json:"SessionStatus" bson:"status,omitempty"`
+	Transportation         int                `json:"Transportation" bson:"transportation,omitempty"`
+	DistanceCrossedPercent int                `json:"DistanceCrossedPercent" bson:"distanceCrossed,omitempty"`
+	LastActivity           *time.Time         `json:"LastActivity" bson:"lastActivity,omitempty"`
+	CompletedKeyPoints     CompletedKeyPoints `json:"CompletedKeyPoints" bson:"completedKeyPoints,omitempty"`
 }
 
 type SessionStatus int
