@@ -6,7 +6,8 @@ import (
 )
 
 type TourKeypoint struct {
-	ID             int     `json:"-" bson:"_id,omitempty"`
+	ID             int     `json:"Id" bson:"_id,omitempty"`
+	Name           string  `json:"Name" bson:"Name,omitempty"`
 	Description    string  `json:"Description" bson:"Description,omitempty"`
 	Image          string  `json:"Image" bson:"Image,omitempty"`
 	Latitude       float64 `json:"Latitude" bson:"Latitude,omitempty"`
