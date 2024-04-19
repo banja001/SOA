@@ -1,45 +1,28 @@
 package model
 
+import (
+	"encoding/json"
+	"io"
+)
+
 type TourKeypoint struct {
-	ID             int     `json:"Id"`
-	Name           string  `json:"Name" gorm:"not null;type:string"`
-	Description    string  `json:"Description" gorm:"not null"`
-	Image          string  `json:"Image"`
-	Latitude       float64 `json:"Latitude"`
-	Longitude      float64 `json:"Longitude"`
-	TourID         int     `json:"TourId"`
-	Secret         string  `json:"Secret"`
-	PositionInTour int     `json:"PositionInTour"`
-	PublicPointID  int     `json:"PublicPointId"`
+	ID             int     `json:"-" bson:"_id,omitempty"`
+	Description    string  `json:"Description" bson:"Description,omitempty"`
+	Image          string  `json:"Image" bson:"Image,omitempty"`
+	Latitude       float64 `json:"Latitude" bson:"Latitude,omitempty"`
+	Longitude      float64 `json:"Longitude" bson:"Longitude,omitempty"`
+	TourID         int     `json:"TourId" bson:"TourId,omitempty"`
+	Secret         string  `json:"Secret" bson:"Secret,omitempty"`
+	PositionInTour int     `json:"PositionInTour" bson:"PositionInTour,omitempty"`
+	PublicPointID  int     `json:"PublicPointId" bson:"PublicPointId,omitempty"`
 }
 
-func (TourKeypoint) TableName() string {
-	return "TourKeypoints"
+func (tkp *TourKeypoint) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(tkp)
 }
 
-
-// func (tourKeypoint TourKeypoint) Validate(db *gorm.DB) {
-// 	if tourKeypoint.Latitude > 90{
-// 		db.AddError(errors.New("latitude needs to be between -90 and 90"))
-// 	}
-// }
-
-// func (tourKeypoint *TourKeypoint) BeforeCreate(db *gorm.DB) (err error) {
-//     tourKeypoint.Validate(db)
-
-// 	if db.Error != nil {
-//         return db.Error
-//     }
-
-//     return nil
-// }
-
-// func (tourKeypoint *TourKeypoint) BeforeUpdate(db *gorm.DB) (err error) {
-//     tourKeypoint.Validate(db)
-
-// 	if db.Error != nil {
-//         return db.Error
-//     }
-
-//     return nil
-// }
+func (tkp *TourKeypoint) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(tkp)
+}
