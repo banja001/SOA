@@ -3,12 +3,12 @@ package repo
 import (
 	"database-example/model"
 	"log"
+	"strconv"
 	"time"
 
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,25 +17,15 @@ type TourKeypointRepository struct {
 	DatabaseConnection *mongo.Client
 }
 
-// func (repo *TourKeypointRepository) FindById(id string) (model.TourKeypoint, error) {
-// 	tourKeypoint := model.TourKeypoint{}
-// 	dbResult := repo.DatabaseConnection.First(&tourKeypoint, "id = ?", id)
-// 	if dbResult != nil {
-// 		return tourKeypoint, dbResult.Error
-// 	}
-// 	return tourKeypoint, nil
-// }
-
 func (repo *TourKeypointRepository) FindById(id string) (model.TourKeypoint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	tourKeyPointsCollection := repo.getCollection()
-
-	tourKeypoint := model.TourKeypoint{}
-	objID, _ := primitive.ObjectIDFromHex(id)
+	var tourKeypoint model.TourKeypoint
+	objID, _ := strconv.Atoi(id)
 	err := tourKeyPointsCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&tourKeypoint)
 	if err != nil {
+		log.Println(err)
 		return tourKeypoint, err
 	}
 	return tourKeypoint, nil
@@ -64,20 +54,49 @@ func (repo *TourKeypointRepository) Create(tourKeypoint *model.TourKeypoint) (mo
 }
 
 func (repo *TourKeypointRepository) Update(tourKeypoint *model.TourKeypoint) (model.TourKeypoint, error) {
-	// dbResult := repo.DatabaseConnection.Updates(tourKeypoint)
-	// if dbResult.Error != nil {
-	// 	return *tourKeypoint, dbResult.Error
-	// }
-	// println("Tour keypoints updated: ", dbResult.RowsAffected)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tourKeyPointsCollection := repo.getCollection()
+
+	filter := bson.M{"_id": tourKeypoint.ID}
+	update := bson.M{"$set": bson.M{
+		"Name":           tourKeypoint.Name,
+		"Description":    tourKeypoint.Description,
+		"Image":          tourKeypoint.Image,
+		"Latitude":       tourKeypoint.Latitude,
+		"Longitude":      tourKeypoint.Longitude,
+		"TourID":         tourKeypoint.TourID,
+		"Secret":         tourKeypoint.Secret,
+		"PositionInTour": tourKeypoint.PositionInTour,
+		"PublicPointID":  tourKeypoint.PublicPointID,
+	}}
+
+	result, err := tourKeyPointsCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Printf("Failed to update tourKeypoint: %v", err)
+		return model.TourKeypoint{}, err
+	}
+
+	log.Printf("Documents matched: %v\n", result.MatchedCount)
+	log.Printf("Documents updated: %v\n", result.ModifiedCount)
+
 	return *tourKeypoint, nil
 }
 
 func (repo *TourKeypointRepository) Delete(id string) error {
-	// dbResult := repo.DatabaseConnection.Unscoped().Delete(&model.TourKeypoint{}, "id = ?", id)
-	// if dbResult.Error != nil {
-	// 	return dbResult.Error
-	// }
-	// println("Tour keypoints deleted: ", dbResult.RowsAffected)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	tourKeyPointsCollection := repo.getCollection()
+
+	objID, _ := strconv.Atoi(id)
+	filter := bson.D{{Key: "_id", Value: objID}}
+	result, err := tourKeyPointsCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Printf("Documents deleted: %v\n", result.DeletedCount)
 	return nil
 }
 
