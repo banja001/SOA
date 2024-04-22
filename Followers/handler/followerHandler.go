@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"Followers/model"
 	"Followers/service"
+	"encoding/json"
 	"log"
 	"net/http"
 )
+
+type KeyProduct struct{}
 
 type FollowerHandler struct {
 	logger *log.Logger
@@ -42,4 +46,21 @@ func (fh *FollowerHandler) GetAllFollowers(rw http.ResponseWriter, h *http.Reque
         http.Error(rw, "Error converting to JSON", http.StatusInternalServerError)
         return
     }
+}
+
+func (f *FollowerHandler) CreateFollower(rw http.ResponseWriter, r *http.Request) {
+    updatedFollower := &model.Follower{}
+    err := json.NewDecoder(r.Body).Decode(updatedFollower)
+    if err != nil {
+        f.logger.Println("Error decoding request body:", err)
+        rw.WriteHeader(http.StatusBadRequest)
+        return
+    }
+	err = f.service.RewriteFollower(updatedFollower)
+	if err != nil {
+		f.logger.Print("Error updating follower:", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
 }

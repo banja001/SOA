@@ -49,13 +49,11 @@ func (fr *FollowerRepo) CloseDriverConnection(ctx context.Context) {
 	fr.driver.Close(ctx)
 }
 
-// GetAllNodesWithFollowerLabel retrieves all nodes labeled as Follower from the Neo4j database.
 func (fr *FollowerRepo) GetAllFollowerNodes() (model.Followers, error) {
     ctx := context.Background()
     session := fr.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
     defer session.Close(ctx)
 
-    // ExecuteRead for read transactions (Read and queries)
     followerResults, err := session.ExecuteRead(ctx,
         func(transaction neo4j.ManagedTransaction) (interface{}, error) {
             result, err := transaction.Run(ctx,
@@ -94,5 +92,42 @@ func (fr *FollowerRepo) GetAllFollowerNodes() (model.Followers, error) {
     return followerResults.(model.Followers), nil
 }
 
+func (fr *FollowerRepo) RewriteFollower(updatedFollower *model.Follower) error {
+    ctx := context.Background()
+    session := fr.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+    defer session.Close(ctx)
 
+    _, err := session.ExecuteWrite(ctx,
+        func(transaction neo4j.ManagedTransaction) (any, error) {
+            result, err := transaction.Run(ctx,
+                "MATCH (f:Follower {Id: $id}) "+
+                    "SET f.FollowerId = $newFollowerId, "+
+                    "f.FollowingId = $newFollowingId, "+
+                    "f.FollowerNotification.Content = $newContent, "+
+                    "f.FollowerNotification.TimeOfArrival = $newTimeOfArrival, "+
+                    "f.FollowerNotification.Read = $newRead ",
+                map[string]any{
+                    "id":               updatedFollower.ID,
+                    "newFollowerId":    updatedFollower.FollowerId,
+                    "newFollowingId":   updatedFollower.FollowingId,
+                    "newContent":       updatedFollower.Notification.Content,
+                    "newTimeOfArrival": updatedFollower.Notification.TimeOfArrival,
+                    "newRead":          updatedFollower.Notification.Read,
+                })
+            if err != nil {
+	            println("Problem\n")
+                return nil, err
+            }
 
+            if result.Next(ctx) {
+				return result.Record().Values[0], nil
+			}
+            
+            return nil, result.Err()
+        })
+    if err != nil {
+        fr.logger.Println("Error updating follower:", err)
+        return err
+    }
+    return nil
+}

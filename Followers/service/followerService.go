@@ -22,3 +22,13 @@ func NewFollowerService(repo *repo.FollowerRepo, logger *log.Logger) *FollowerSe
 func (fs *FollowerService) GetAllFollowers() (model.Followers, error) {
     return fs.repo.GetAllFollowerNodes()
 }
+
+func (fs *FollowerService) RewriteFollower(updatedFollower *model.Follower) error {
+	err := fs.repo.RewriteFollower(updatedFollower)
+    if err != nil {
+        fs.logger.Println("Error updating follower in service:", err)
+        return err
+    }
+    return nil
+}
+

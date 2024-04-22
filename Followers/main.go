@@ -53,6 +53,9 @@ func main() {
 	getAllFollowers := router.Methods(http.MethodGet).Subrouter()
 	getAllFollowers.HandleFunc("/followers", followerHandler.GetAllFollowers)
 
+	putFollower := router.Methods(http.MethodPut).Subrouter()
+	putFollower.HandleFunc("/followers/update", followerHandler.CreateFollower)
+
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 
 	//Initialize the server

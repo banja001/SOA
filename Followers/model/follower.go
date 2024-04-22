@@ -7,6 +7,7 @@ import (
 )
 
 type Follower struct {
+	ID              int64                   `json:"Id" gorm:"primaryKey;autoIncrement"`
 	FollowerId 	    int64    				`json:"FollowerId,omitempty"`
 	FollowingId    	int64   				`json:"FollowingId,omitempty"`
 	Notification    FollowerNotification	`json:"Notification,omitempty"`
