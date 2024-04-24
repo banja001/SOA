@@ -7,16 +7,16 @@ import (
 )
 
 type Follower struct {
-	ID              int64                   `json:"Id" gorm:"primaryKey;autoIncrement"`
-	FollowerId 	    int64    				`json:"FollowerId,omitempty"`
-	FollowingId    	int64   				`json:"FollowingId,omitempty"`
-	Notification    FollowerNotification	`json:"Notification,omitempty"`
+	ID           int64                `json:"Id" gorm:"primaryKey;autoIncrement"`
+	FollowerId   int64                `json:"FollowerId,omitempty"`
+	FollowedId   int64                `json:"FollowedId,omitempty"`
+	Notification FollowerNotification `json:"Notification,omitempty"`
 }
 
 type FollowerNotification struct {
-	Content         string 			`json:"Content,omitempty"`
-	TimeOfArrival   *time.Time 		`json:"TimeOfArrival,omitempty"`
-	Read            bool         	`json:"Read,omitempty"`
+	Content       string     `json:"Content,omitempty"`
+	TimeOfArrival *time.Time `json:"TimeOfArrival,omitempty"`
+	Read          bool       `json:"Read,omitempty"`
 }
 
 type Followers []*Follower

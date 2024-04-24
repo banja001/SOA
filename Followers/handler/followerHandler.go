@@ -6,20 +6,23 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type KeyProduct struct{}
 
 type FollowerHandler struct {
-	logger *log.Logger
-    service *service.FollowerService
+	logger  *log.Logger
+	service *service.FollowerService
 }
- 
+
 func NewFollowerHandler(service *service.FollowerService, logger *log.Logger) *FollowerHandler {
-    return &FollowerHandler{
-        service: service,
-        logger:  logger,
-    }
+	return &FollowerHandler{
+		service: service,
+		logger:  logger,
+	}
 }
 
 func (f *FollowerHandler) MiddlewareContentTypeSet(next http.Handler) http.Handler {
@@ -33,29 +36,49 @@ func (f *FollowerHandler) MiddlewareContentTypeSet(next http.Handler) http.Handl
 }
 
 func (fh *FollowerHandler) GetAllFollowers(rw http.ResponseWriter, h *http.Request) {
-    followers, err := fh.service.GetAllFollowers()
-    if err != nil {
-        fh.logger.Println("Database exception:", err)
-        http.Error(rw, "Database exception", http.StatusInternalServerError)
-        return
-    }
+	persons, err := fh.service.GetAllPersonsNodes()
+	if err != nil {
+		fh.logger.Println("Database exception:", err)
+		http.Error(rw, "Database exception", http.StatusInternalServerError)
+		return
+	}
+	err = persons.ToJSON(rw)
+	if err != nil {
+		fh.logger.Println("Error converting to JSON:", err)
+		http.Error(rw, "Error converting to JSON", http.StatusInternalServerError)
+		return
+	}
+}
 
-    err = followers.ToJSON(rw)
-    if err != nil {
-        fh.logger.Println("Error converting to JSON:", err)
-        http.Error(rw, "Error converting to JSON", http.StatusInternalServerError)
-        return
-    }
+func (fh *FollowerHandler) GetAllFollowed(rw http.ResponseWriter, h *http.Request) {
+	id := mux.Vars(h)["id"]
+	num, _ := strconv.Atoi(id)
+	id2 := mux.Vars(h)["uid"]
+	num2, _ := strconv.Atoi(id2)
+	persons, err := fh.service.GetAllFollowed(num, num2)
+
+	if err != nil {
+		fh.logger.Println("Database exception:", err)
+		http.Error(rw, "Database exception", http.StatusInternalServerError)
+		return
+	}
+
+	err = persons.ToJSON(rw)
+	if err != nil {
+		fh.logger.Println("Error converting to JSON:", err)
+		http.Error(rw, "Error converting to JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (f *FollowerHandler) CreateFollower(rw http.ResponseWriter, r *http.Request) {
-    updatedFollower := &model.Follower{}
-    err := json.NewDecoder(r.Body).Decode(updatedFollower)
-    if err != nil {
-        f.logger.Println("Error decoding request body:", err)
-        rw.WriteHeader(http.StatusBadRequest)
-        return
-    }
+	updatedFollower := &model.Follower{}
+	err := json.NewDecoder(r.Body).Decode(updatedFollower)
+	if err != nil {
+		f.logger.Println("Error decoding request body:", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	err = f.service.RewriteFollower(updatedFollower)
 	if err != nil {
 		f.logger.Print("Error updating follower:", err)

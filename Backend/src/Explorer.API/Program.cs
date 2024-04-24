@@ -30,6 +30,11 @@ builder.Services.AddHttpClient("encountersMicroservice", (client) =>
     var service = Environment.GetEnvironmentVariable("GO_ENCOUNTERS_SERVICE_HOST") ?? "localhost";
     client.BaseAddress = new Uri($"http://{service}:8090");
 });
+builder.Services.AddHttpClient("followerMicroservice", (client) =>
+{
+    var service = Environment.GetEnvironmentVariable("GO_FOLLOWER_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8060");
+});
 
 builder.Services.AddSignalR(o =>
 {

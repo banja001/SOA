@@ -16,13 +16,12 @@ import (
 )
 
 func main() {
-	port := "8060"
-	/*
+
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8060"
 	}
-	*/
+
 	// Initialize context
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -40,7 +39,7 @@ func main() {
 	store.CheckConnection()
 
 	//Initialize the service and inject said logger
-    followerService := service.NewFollowerService(store, logger)
+	followerService := service.NewFollowerService(store, logger)
 
 	//Initialize the handler and inject said logger
 	followerHandler := handler.NewFollowerHandler(followerService, logger)
@@ -49,9 +48,12 @@ func main() {
 	router := mux.NewRouter()
 
 	router.Use(followerHandler.MiddlewareContentTypeSet)
-	
+
 	getAllFollowers := router.Methods(http.MethodGet).Subrouter()
 	getAllFollowers.HandleFunc("/followers", followerHandler.GetAllFollowers)
+
+	getAllFollowed := router.Methods(http.MethodGet).Subrouter()
+	getAllFollowed.HandleFunc("/followers/recommended/{id}/{uid}", followerHandler.GetAllFollowed)
 
 	putFollower := router.Methods(http.MethodPut).Subrouter()
 	putFollower.HandleFunc("/followers/update", followerHandler.CreateFollower)

@@ -19,10 +19,12 @@ services:
       DATABASE_SCHEMA: explorer
       GO_TOUR_SERVICE_HOST: go-tour-service
       GO_ENCOUNTERS_SERVICE_HOST: go-encounter-service
+      GO_FOLLOWER_SERVICE_HOST: go-follower-service
     depends_on:
       - db
       - go-tour-service
       - go-encounter-service
+      - go-follower-service
 
   go-encounter-service:
     build:
@@ -52,7 +54,52 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+        
+  go-follower-service:
+    build:
+      context: ./Followers/
+    restart: on-failure
+    ports:
+      - "8060:8060"
+    networks:
+      - database
+    environment:
+      - PORT=8060
+      - NEO4J_DB=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASS=nekaSifra
+    depends_on:
+      neo4j:
+        condition: service_healthy
 
+  # NoSQL: Neo4J DB
+  neo4j:
+    image: neo4j
+    restart: always
+    ports:
+      # bolt
+      - "7687:7687"
+      # http
+      - "7474:7474"
+      # https
+      - "7473:7473"
+    # Docker healtcheck - checks if database is "alive"
+    networks:
+      - database
+    healthcheck:
+      # test: [ "CMD-SHELL", "echo RETURN 1 | cypher-shell -a <NEO4J_dbms_connector_bolt_listen__address> -u <user defined username> -p <user defined password> || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "echo RETURN 1 | cypher-shell -a bolt://neo4j:7687 -u neo4j -p nekaSifra || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      - NEO4J_AUTH=neo4j/nekaSifra
+    volumes:
+      - neo4j_data:/data
 
   db:
     image: postgres:latest
@@ -113,6 +160,8 @@ services:
 volumes:
   mongo_store:
   mongo_express_data:
+  neo4j_data:
+
 
 networks:
   database:
