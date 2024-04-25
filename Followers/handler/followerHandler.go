@@ -49,13 +49,34 @@ func (fh *FollowerHandler) GetAllFollowers(rw http.ResponseWriter, h *http.Reque
 		return
 	}
 }
-
-func (fh *FollowerHandler) GetAllFollowed(rw http.ResponseWriter, h *http.Request) {
+func (fh *FollowerHandler) IsFollowed(rw http.ResponseWriter, h *http.Request) {
 	id := mux.Vars(h)["id"]
 	num, _ := strconv.Atoi(id)
 	id2 := mux.Vars(h)["uid"]
 	num2, _ := strconv.Atoi(id2)
-	persons, err := fh.service.GetAllFollowed(num, num2)
+	isFollowed, err := fh.service.IsFollowed(num, num2)
+
+	if err != nil {
+		fh.logger.Println("Database exception:", err)
+		http.Error(rw, "Database exception", http.StatusInternalServerError)
+		return
+	}
+	jsonData, err := json.Marshal(isFollowed)
+	if err != nil {
+		fh.logger.Println("Error converting to JSON:", err)
+		http.Error(rw, "Error converting to JSON", http.StatusInternalServerError)
+		return
+	}
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Write(jsonData)
+}
+
+func (fh *FollowerHandler) GetAllRecomended(rw http.ResponseWriter, h *http.Request) {
+	id := mux.Vars(h)["id"]
+	num, _ := strconv.Atoi(id)
+	id2 := mux.Vars(h)["uid"]
+	num2, _ := strconv.Atoi(id2)
+	persons, err := fh.service.GetAllRecomended(num, num2)
 
 	if err != nil {
 		fh.logger.Println("Database exception:", err)

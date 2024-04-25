@@ -23,10 +23,12 @@ func (fs *FollowerService) GetAllPersonsNodes() (*model.Persons, error) {
 	return fs.repo.GetAllPersonsNodes()
 }
 
-func (fs *FollowerService) GetAllFollowed(id int, uid int) (*model.Persons, error) {
-	return fs.repo.GetAllFollowed(id, uid)
+func (fs *FollowerService) GetAllRecomended(id int, uid int) (*model.Persons, error) {
+	return fs.repo.GetAllRecomended(id, uid)
 }
-
+func (fs *FollowerService) IsFollowed(id int, uid int) (bool, error) {
+	return fs.repo.IsFollowed(id, uid)
+}
 func (fs *FollowerService) RewriteFollower(updatedFollower *model.Follower) error {
 	err := fs.repo.RewriteFollower(updatedFollower)
 	if err != nil {

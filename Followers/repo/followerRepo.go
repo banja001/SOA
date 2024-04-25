@@ -156,7 +156,7 @@ func (fr *FollowerRepo) RewriteFollower(updatedFollower *model.Follower) error {
 	return nil
 }
 
-func (fr *FollowerRepo) GetAllFollowed(id int, uid int) (*model.Persons, error) {
+func (fr *FollowerRepo) GetAllRecomended(id int, uid int) (*model.Persons, error) {
 	ctx := context.Background()
 	session := fr.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
@@ -217,7 +217,7 @@ func (fr *FollowerRepo) IsFollowed(id1 int, id2 int) (bool, error) {
 	ok, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				"MATCH (p1:Person {id: $id1})-[:FOLLOWS]->(p2:Person {id: $id2}) "+
+				"MATCH (p1:Person {id: $id2})-[:FOLLOWS]->(p2:Person {id: $id1}) "+
 					"RETURN p1, p2",
 				map[string]any{
 					"id1": id1,

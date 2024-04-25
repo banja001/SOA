@@ -52,8 +52,11 @@ func main() {
 	getAllFollowers := router.Methods(http.MethodGet).Subrouter()
 	getAllFollowers.HandleFunc("/followers", followerHandler.GetAllFollowers)
 
+	getAllRecomended := router.Methods(http.MethodGet).Subrouter()
+	getAllRecomended.HandleFunc("/followers/recommended/{id}/{uid}", followerHandler.GetAllRecomended)
+
 	getAllFollowed := router.Methods(http.MethodGet).Subrouter()
-	getAllFollowed.HandleFunc("/followers/recommended/{id}/{uid}", followerHandler.GetAllFollowed)
+	getAllFollowed.HandleFunc("/followers/followed/{id}/{uid}", followerHandler.IsFollowed)
 
 	putFollower := router.Methods(http.MethodPut).Subrouter()
 	putFollower.HandleFunc("/followers/update", followerHandler.CreateFollower)
