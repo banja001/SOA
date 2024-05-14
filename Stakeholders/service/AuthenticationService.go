@@ -29,7 +29,7 @@ func (service *AuthenticationService) Login(credentials *dto.Credentials) (*dto.
 		return nil, errors.New("invalid username or password")
 	}
 
-	tokens, err := service.GenerateAccessToken(user.ID, user.Username, user.Role)
+	tokens, err := service.GenerateAccessToken(user.ID, user.Username, user.Role, user.PersonId)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (service *AuthenticationService) Login(credentials *dto.Credentials) (*dto.
 	return tokens, nil
 }
 
-func (service *AuthenticationService) GenerateAccessToken(userId int, username string, role model.UserRole) (*dto.AuthenticationTokens, error) {
+func (service *AuthenticationService) GenerateAccessToken(userId int, username string, role model.UserRole, personId int) (*dto.AuthenticationTokens, error) {
 	var secretKey = getEnv("JWT_KEY", "explorer_secret_key")
 	var issuer = getEnv("JWT_ISSUER", "explorer")
 	var audience = getEnv("JWT_AUDIENCE", "explorer-front.com")
@@ -46,7 +46,8 @@ func (service *AuthenticationService) GenerateAccessToken(userId int, username s
 		"jti":      uuid.New().String(),
 		"id":       strconv.FormatInt(int64(userId), 10),
 		"username": username,
-		"role":     role,
+		"personId": personId,
+		"role":     role.String(),
 		"exp":      time.Now().Add(time.Minute * 60 * 24).Unix(),
 		"iss":      issuer,
 		"aud":      audience,
