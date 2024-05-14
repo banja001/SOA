@@ -5,6 +5,7 @@ using Explorer.Payments.API.Dtos;
 using Explorer.Payments.API.Public;
 using Explorer.Stakeholders.API.Dtos;
 using Explorer.Stakeholders.API.Public;
+using Explorer.Tours.API.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Explorer.API.Controllers;
@@ -15,12 +16,14 @@ public class AuthenticationController : BaseApiController
     private readonly IAuthenticationService _authenticationService;
     private readonly IWalletService _walletService;
     private readonly IUserExperienceService _userExperienceService;
+    private readonly IHttpClientFactory _factory;
 
-    public AuthenticationController(IAuthenticationService authenticationService, IWalletService walletService, IUserExperienceService userExperienceService)
+    public AuthenticationController(IAuthenticationService authenticationService, IWalletService walletService, IUserExperienceService userExperienceService, IHttpClientFactory factory)
     {
         _authenticationService = authenticationService;
         _walletService = walletService;
         _userExperienceService = userExperienceService;
+        _factory = factory;
     }
 
     [HttpPost]
@@ -36,10 +39,19 @@ public class AuthenticationController : BaseApiController
     }
 
     [HttpPost("login")]
-    public ActionResult<AuthenticationTokensDto> Login([FromBody] CredentialsDto credentials)
+    public async Task<ActionResult<AuthenticationTokensDto>> Login([FromBody] CredentialsDto credentials)
     {
-        var result = _authenticationService.Login(credentials);
-        return CreateResponse(result);
+        var client = _factory.CreateClient("stakeholdersMicroservice");
+        using HttpResponseMessage response = await client.PostAsJsonAsync("/users/login", credentials);
+        if (!response.IsSuccessStatusCode)
+        {
+            return StatusCode((int)response.StatusCode);
+        }
+
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        var result = System.Text.Json.JsonSerializer.Deserialize<AuthenticationTokensDto>(jsonResponse);
+
+        return Ok(result);
     }
 
     [HttpPost("changePasswordRequest")]
