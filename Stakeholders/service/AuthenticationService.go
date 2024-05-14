@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"os"
 	"stakeholders/dto"
 	"stakeholders/model"
 	"stakeholders/repo"
@@ -38,9 +37,9 @@ func (service *AuthenticationService) Login(credentials *dto.Credentials) (*dto.
 }
 
 func (service *AuthenticationService) GenerateAccessToken(userId int, username string, role model.UserRole, personId int) (*dto.AuthenticationTokens, error) {
-	var secretKey = getEnv("JWT_KEY", "explorer_secret_key")
-	var issuer = getEnv("JWT_ISSUER", "explorer")
-	var audience = getEnv("JWT_AUDIENCE", "explorer-front.com")
+	var secretKey = "explorer_secret_key"
+	var issuer = "explorer"
+	var audience = "explorer-front.com"
 
 	claims := jwt.MapClaims{
 		"jti":      uuid.New().String(),
@@ -68,10 +67,42 @@ func (service *AuthenticationService) GenerateAccessToken(userId int, username s
 	return &returnToken, nil
 }
 
-func getEnv(key, fallbackValue string) string {
-	value, ok := os.LookupEnv(key)
-	if !ok {
-		return fallbackValue
+func ValidateAccessToken(accessToken string) (jwt.MapClaims, error) {
+	var secretKey = "explorer_secret_key"
+	var issuer = "explorer"
+	var audience = "explorer-front.com"
+
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secretKey), nil
+	})
+	if err != nil {
+		return nil, err
 	}
-	return value
+
+	if !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
+
+	if claims["iss"] != issuer {
+		return nil, errors.New("invalid issuer")
+	}
+
+	if claims["aud"] != audience {
+		return nil, errors.New("invalid audience")
+	}
+
+	expirationTime := time.Unix(int64(claims["exp"].(float64)), 0)
+	if time.Now().After(expirationTime) {
+		return nil, errors.New("token has expired")
+	}
+
+	return claims, nil
 }
