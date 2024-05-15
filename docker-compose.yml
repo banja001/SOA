@@ -2,6 +2,26 @@ version: '3.9'
 
 services:
 
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    hostname: api-gateway
+    build:
+      context: ./ApiGateway/
+      dockerfile: Dockerfile
+    restart: always
+    environment: 
+      STAKEHOLDERS_SERVICE_ADDRESS: go-stakeholders-service:8093
+      GATEWAY_ADDRESS: ":9000"
+    depends_on:
+      - go-stakeholders-service
+    networks:
+      - database
+    ports:
+      - "9000:9000"
+    expose:
+      - "8093:8093"
+
   explorer:
     build:
       context: ./Backend/
@@ -38,6 +58,19 @@ services:
       - db
     environment:
       - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5433 sslmode=disable
+
+  go-stakeholders-service:
+    build:
+      context: ./Stakeholders/
+    ports:
+      - "8093:8093"
+    restart: on-failure
+    networks:
+      - database
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL2=host=db user=postgres password=super dbname=usersdb port=5433 sslmode=disable
 
   go-tour-service:
     build:
@@ -110,13 +143,14 @@ services:
       - "5433:5433"
     volumes:
       - ./db_init.sh:/docker-entrypoint-initdb.d/db_init.sh
+      - ./usersdb_init.sql:/docker-entrypoint-initdb.d/usersdb_init.sql
       - type: bind
         source: explorer-init-data.sql
         target: /tmp/explorer-init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: super
-      POSTGRES_MULTIPLE_DATABASES: tourdb,explorer,encountersdb
+      POSTGRES_MULTIPLE_DATABASES: tourdb,explorer,encountersdb,usersdb
       PGPORT: 5433
 
   mongo:

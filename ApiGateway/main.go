@@ -20,7 +20,7 @@ func main() {
 
 	conn, err := grpc.DialContext(
 		context.Background(),
-		":8093",
+		os.Getenv("STAKEHOLDERS_SERVICE_ADDRESS"),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	gwServer := &http.Server{
-		Addr:    ":9000",
+		Addr:    os.Getenv("GATEWAY_ADDRESS"),
 		Handler: gwmux,
 	}
 

@@ -18,7 +18,7 @@ import (
 )
 
 func GetConnectionString() string {
-	connectionString, isPresent := os.LookupEnv("DATABASE_URL")
+	connectionString, isPresent := os.LookupEnv("DATABASE_URL2")
 	if isPresent {
 		return connectionString
 	} else {
