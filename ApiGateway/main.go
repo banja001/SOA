@@ -1,7 +1,6 @@
 package main
 
 import (
-	"api-gateway/config"
 	stakeholder_service "api-gateway/proto/stakeholder-service"
 	"context"
 	"log"
@@ -17,11 +16,11 @@ import (
 
 func main() {
 
-	cfg := config.GetConfig()
+	//cfg := config.GetConfig()
 
 	conn, err := grpc.DialContext(
 		context.Background(),
-		cfg.StakeholderServiceAddress,
+		":8093",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
@@ -43,11 +42,11 @@ func main() {
 	}
 
 	gwServer := &http.Server{
-		Addr:    cfg.Address,
+		Addr:    ":9000",
 		Handler: gwmux,
 	}
 
-	log.Println("Serving gRPC-Gateway on http://0.0.0.0:44333")
+	log.Println("Serving gRPC-Gateway on http://0.0.0.0:9000")
 
 	go func() {
 		if err := gwServer.ListenAndServe(); err != nil {

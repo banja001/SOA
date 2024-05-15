@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	StakeholderService_Login_FullMethodName = "/StakeholderService/login"
+	StakeholderService_Login_FullMethodName = "/StakeholderService/Login"
 )
 
 // StakeholderServiceClient is the client API for StakeholderService service.
@@ -102,7 +102,7 @@ var StakeholderService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StakeholderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "login",
+			MethodName: "Login",
 			Handler:    _StakeholderService_Login_Handler,
 		},
 	},

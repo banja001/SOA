@@ -7,9 +7,9 @@ import "google/protobuf/timestamp.proto";
 
 service StakeholderService{
 //Login
-  rpc login(Credentials) returns (AuthenticationTokensResponse) {
+  rpc Login(Credentials) returns (AuthenticationTokensResponse) {
     option(google.api.http) = {
-      post: "/api/users/login"
+      post: "/users/login"
       body: "*"
     };
   }
