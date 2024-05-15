@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-	"stakeholders/dto"
 	"stakeholders/service"
 )
 
@@ -11,7 +8,7 @@ type AuthenticationHandler struct {
 	AuthenticationService *service.AuthenticationService
 }
 
-func (handler *AuthenticationHandler) Login(writer http.ResponseWriter, req *http.Request) {
+/*func (handler *AuthenticationHandler) Login(writer http.ResponseWriter, req *http.Request) {
 	var credentials dto.Credentials
 	err := json.NewDecoder(req.Body).Decode(&credentials)
 	if err != nil {
@@ -34,4 +31,4 @@ func (handler *AuthenticationHandler) Login(writer http.ResponseWriter, req *htt
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
+}*/

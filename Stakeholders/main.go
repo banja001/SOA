@@ -2,14 +2,18 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"net"
 	"os"
-	"stakeholders/handler"
+	"os/signal"
+	"stakeholders/config"
 	"stakeholders/model"
+	"stakeholders/proto/stakeholders"
 	"stakeholders/repo"
 	"stakeholders/service"
+	"syscall"
 
-	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -39,22 +43,22 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer(database *gorm.DB) {
-	router := mux.NewRouter().StrictSlash(true)
+// func startServer(database *gorm.DB) {
+// 	router := mux.NewRouter().StrictSlash(true)
 
-	initUsers(router, database)
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
-	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8093", router))
-}
+// 	initUsers(router, database)
+// 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+// 	println("Server starting")
+// 	log.Fatal(http.ListenAndServe(":8093", router))
+// }
 
-func initUsers(router *mux.Router, database *gorm.DB) {
+/*unc initUsers(router *mux.Router, database *gorm.DB) {
 	repo := &repo.UserRepository{DatabaseConnection: database}
 	service := &service.AuthenticationService{UserRepository: repo}
 	handler := &handler.AuthenticationHandler{AuthenticationService: service}
 
 	router.HandleFunc("/users/login", handler.Login).Methods("POST")
-}
+}*/
 
 func main() {
 	database := initDB()
@@ -63,5 +67,41 @@ func main() {
 		return
 	}
 
-	startServer(database)
+	//startServer(database)
+	repo := &repo.UserRepository{DatabaseConnection: database}
+	service := &service.AuthenticationService{UserRepository: repo}
+
+	cfg := config.GetConfig()
+
+	listener, err := net.Listen("tcp", cfg.Address)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func(listener net.Listener) {
+		err := listener.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(listener)
+
+	// Bootstrap gRPC server.
+	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+
+	// Bootstrap gRPC service server and respond to request.
+	//authenticationService := service.AuthenticationService{}
+	stakeholders.RegisterAuthenticationServiceServer(grpcServer, service)
+
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatal("server error: ", err)
+		}
+	}()
+
+	stopCh := make(chan os.Signal)
+	signal.Notify(stopCh, syscall.SIGTERM)
+
+	<-stopCh
+
+	grpcServer.Stop()
 }
