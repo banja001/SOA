@@ -16,7 +16,7 @@ import (
 )
 
 type AuthenticationService struct {
-	pb.UnimplementedAuthenticationServiceServer
+	pb.UnimplementedStakeholderServiceServer
 	UserRepository *repo.UserRepository
 }
 
@@ -25,7 +25,7 @@ func (service *AuthenticationService) Login(ctx context.Context, credentials *pb
 	if err != nil {
 		return nil, err
 	}
-
+	println("usao u login")
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {
 		return nil, errors.New("invalid username or password")

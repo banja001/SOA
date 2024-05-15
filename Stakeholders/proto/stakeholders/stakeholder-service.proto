@@ -2,23 +2,23 @@ syntax = "proto3";
 
 option go_package = "proto/stakeholders";
 
-service AuthenticationService {
+service StakeholderService {
   rpc Login (Credentials) returns (AuthenticationTokens);
   rpc ValidateAccessToken (AccessToken) returns (TokenClaims);
 }
 
 message Credentials {
-  string username = 1;
-  string password = 2;
+  string Username = 1;
+  string Password = 2;
 }
 
 message AuthenticationTokens {
-  int32 id = 1;
-  string access_token = 2;
+  int32 Id = 1;
+  string AccessToken = 2;
 }
 
 message AccessToken {
-  string token = 1;
+  string Token = 1;
 }
 
 message TokenClaims {

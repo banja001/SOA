@@ -5,7 +5,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"stakeholders/config"
 	"stakeholders/model"
 	"stakeholders/proto/stakeholders"
 	"stakeholders/repo"
@@ -66,14 +65,15 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-
+	println("Server starting")
 	//startServer(database)
 	repo := &repo.UserRepository{DatabaseConnection: database}
 	service := &service.AuthenticationService{UserRepository: repo}
 
-	cfg := config.GetConfig()
+	//cfg := config.GetConfig()
 
-	listener, err := net.Listen("tcp", cfg.Address)
+	listener, err := net.Listen("tcp", ":8093")
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -87,10 +87,10 @@ func main() {
 	// Bootstrap gRPC server.
 	grpcServer := grpc.NewServer()
 	reflection.Register(grpcServer)
-
+	println("provera")
 	// Bootstrap gRPC service server and respond to request.
 	//authenticationService := service.AuthenticationService{}
-	stakeholders.RegisterAuthenticationServiceServer(grpcServer, service)
+	stakeholders.RegisterStakeholderServiceServer(grpcServer, service)
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
