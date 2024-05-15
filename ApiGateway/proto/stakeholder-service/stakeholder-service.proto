@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "proto/stakeholder-service";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service StakeholderService{
+//Login
+  rpc login(Credentials) returns (AuthenticationTokensResponse) {
+    option(google.api.http) = {
+      post: "/api/users/login"
+      body: "*"
+    };
+  }
+}
+
+message Credentials{
+  string Username = 1;
+  string Password = 2;
+}
+
+message AuthenticationTokensResponse{
+  int32 Id = 1;
+  string AccessToken = 2;
+}
