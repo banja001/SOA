@@ -3,13 +3,17 @@ package main
 import (
 	"encgo/handler"
 	"encgo/model"
+	user_experience "encgo/proto/user-experience"
 	"encgo/repo"
 	"encgo/service"
 	"log"
-	"net/http"
+	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -47,46 +51,46 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer(database *gorm.DB) {
-	router := mux.NewRouter().StrictSlash(true)
+// func startServer(database *gorm.DB) {
+// 	router := mux.NewRouter().StrictSlash(true)
 
-	initUserExpirience(router, database)
-	initChallenges(router, database)
-	initChallengeExecution(router, database)
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
-	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8090", router))
-}
+// 	initUserExpirience(router, database)
+// 	initChallenges(router, database)
+// 	initChallengeExecution(router, database)
+// 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+// 	println("Server starting")
+// 	log.Fatal(http.ListenAndServe(":8090", router))
+// }
 
-func initUserExpirience(router *mux.Router, database *gorm.DB) {
-	repo := &repo.UserExperienceRepository{DatabaseConnection: database}
-	service := &service.UserExperienceService{UserExperienceRepo: repo}
-	handler := &handler.UserExperienceHandler{UserExperienceService: service}
+// func initUserExpirience(router *mux.Router, database *gorm.DB) {
+// 	repo := &repo.UserExperienceRepository{DatabaseConnection: database}
+// 	service := &service.UserExperienceService{UserExperienceRepo: repo}
+// 	handler := &handler.UserExperienceHandler{UserExperienceService: service}
 
-	router.HandleFunc("/userxp/{userId}", handler.GetByUserId).Methods("GET")
-	router.HandleFunc("/userxp/add/{id}/{xp}", handler.AddXP).Methods("PUT")
-	router.HandleFunc("/userxp/create", handler.Create).Methods("POST")
-	router.HandleFunc("/userxp/delete/{id}", handler.Delete).Methods("DELETE")
-	router.HandleFunc("/userxp/update", handler.Update).Methods("PUT")
-}
+// 	router.HandleFunc("/userxp/{userId}", handler.GetByUserId).Methods("GET")
+// 	router.HandleFunc("/userxp/add/{id}/{xp}", handler.AddXP).Methods("PUT")
+// 	router.HandleFunc("/userxp/create", handler.Create).Methods("POST")
+// 	router.HandleFunc("/userxp/delete/{id}", handler.Delete).Methods("DELETE")
+// 	router.HandleFunc("/userxp/update", handler.Update).Methods("PUT")
+// }
 
-func initChallenges(router *mux.Router, database *gorm.DB) {
-	repo := &repo.ChallengeRepository{DatabaseConnection: database}
-	service := &service.ChallengeService{ChallengeRepository: repo}
-	handler := &handler.ChallengeHandler{ChallengeService: service}
+// func initChallenges(router *mux.Router, database *gorm.DB) {
+// 	repo := &repo.ChallengeRepository{DatabaseConnection: database}
+// 	service := &service.ChallengeService{ChallengeRepository: repo}
+// 	handler := &handler.ChallengeHandler{ChallengeService: service}
 
-	router.HandleFunc("/challenge", handler.GetAll).Methods("GET")
-	router.HandleFunc("/challenge/{id}", handler.Delete).Methods("DELETE")
-	router.HandleFunc("/challenge", handler.Update).Methods("PUT")
-	router.HandleFunc("/challenge", handler.Create).Methods("POST")
-}
+// 	router.HandleFunc("/challenge", handler.GetAll).Methods("GET")
+// 	router.HandleFunc("/challenge/{id}", handler.Delete).Methods("DELETE")
+// 	router.HandleFunc("/challenge", handler.Update).Methods("PUT")
+// 	router.HandleFunc("/challenge", handler.Create).Methods("POST")
+// }
 
-func initChallengeExecution(router *mux.Router, database *gorm.DB) {
-	repo := &repo.ChallengeExecutionRepository{DatabaseConnection: database}
-	service := &service.ChallengeExecutionService{ChallengeExecutionRepository: repo}
-	handler := &handler.ChallengeExecutionHandler{ChallengeExecutionService: service}
-	router.HandleFunc("/challenge-execution/{id}", handler.Delete).Methods("DELETE")
-}
+// func initChallengeExecution(router *mux.Router, database *gorm.DB) {
+// 	repo := &repo.ChallengeExecutionRepository{DatabaseConnection: database}
+// 	service := &service.ChallengeExecutionService{ChallengeExecutionRepository: repo}
+// 	handler := &handler.ChallengeExecutionHandler{ChallengeExecutionService: service}
+// 	router.HandleFunc("/challenge-execution/{id}", handler.Delete).Methods("DELETE")
+// }
 
 func main() {
 	database := initDB()
@@ -94,6 +98,41 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
+	//startServer(database)
+	repo := &repo.UserExperienceRepository{DatabaseConnection: database}
+	service := &service.UserExperienceService{UserExperienceRepo: repo}
+	handler := &handler.UserExperienceHandler{UserExperienceService: service}
 
-	startServer(database)
+	//cfg := config.GetConfig()
+
+	listener, err := net.Listen("tcp", ":8090")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func(listener net.Listener) {
+		err := listener.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(listener)
+
+	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+	user_experience.RegisterUserExperienceServiceServer(grpcServer, handler)
+
+	println("Server starting")
+
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatal("server error: ", err)
+		}
+	}()
+
+	stopCh := make(chan os.Signal)
+	signal.Notify(stopCh, syscall.SIGTERM)
+
+	<-stopCh
+
+	grpcServer.Stop()
 }

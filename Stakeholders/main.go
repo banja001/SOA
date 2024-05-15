@@ -51,13 +51,13 @@ func initDB() *gorm.DB {
 // 	log.Fatal(http.ListenAndServe(":8093", router))
 // }
 
-/*unc initUsers(router *mux.Router, database *gorm.DB) {
-	repo := &repo.UserRepository{DatabaseConnection: database}
-	service := &service.AuthenticationService{UserRepository: repo}
-	handler := &handler.AuthenticationHandler{AuthenticationService: service}
+// func initUsers(router *mux.Router, database *gorm.DB) {
+// 	repo := &repo.UserRepository{DatabaseConnection: database}
+// 	service := &service.AuthenticationService{UserRepository: repo}
+// 	handler := &handler.AuthenticationHandler{AuthenticationService: service}
 
-	router.HandleFunc("/users/login", handler.Login).Methods("POST")
-}*/
+// 	router.HandleFunc("/users/login", handler.Login).Methods("POST")
+// }
 
 func main() {
 	database := initDB()
@@ -65,7 +65,6 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-	println("Server starting")
 	//startServer(database)
 	repo := &repo.UserRepository{DatabaseConnection: database}
 	service := &service.AuthenticationService{UserRepository: repo}
@@ -84,13 +83,10 @@ func main() {
 		}
 	}(listener)
 
-	// Bootstrap gRPC server.
 	grpcServer := grpc.NewServer()
 	reflection.Register(grpcServer)
-	println("provera")
-	// Bootstrap gRPC service server and respond to request.
-	//authenticationService := service.AuthenticationService{}
 	stakeholders.RegisterStakeholderServiceServer(grpcServer, service)
+	println("Server starting")
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {

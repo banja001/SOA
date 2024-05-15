@@ -1,115 +1,104 @@
 package handler
 
 import (
+	"context"
 	"encgo/model"
+	pb "encgo/proto/user-experience"
 	"encgo/service"
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"log"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type UserExperienceHandler struct {
 	UserExperienceService *service.UserExperienceService
+	pb.UnimplementedUserExperienceServiceServer
 }
 
-func (handler *UserExperienceHandler) GetByUserId(writer http.ResponseWriter, req *http.Request) {
-	userId := mux.Vars(req)["userId"]
-	num, _ := strconv.Atoi(userId)
-	userExperience, err := handler.UserExperienceService.FindByUserId(num)
-	writer.Header().Set("Content-Type", "application/json")
+func (handler *UserExperienceHandler) FindByUserId(ctx context.Context, req *pb.FindByUserIdRequest) (*pb.UserExperience, error) {
+	userExperience, err := handler.UserExperienceService.FindByUserId(int(req.UserId))
 	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
+		return nil, fmt.Errorf("user experience with user id %d not found", req.UserId)
 	}
 
-	u, _ := json.Marshal(userExperience)
-	fmt.Println(string(u))
-
-	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(userExperience)
+	return &pb.UserExperience{
+		Id:     int32(userExperience.ID),
+		UserId: int32(userExperience.UserID),
+		Xp:     int32(userExperience.XP),
+		Level:  int32(userExperience.Level),
+	}, nil
 }
 
-func (handler *UserExperienceHandler) AddXP(writer http.ResponseWriter, req *http.Request) {
-	id := mux.Vars(req)["id"]
-	num, _ := strconv.Atoi(id)
-
-	xp := mux.Vars(req)["xp"]
-	xpNum, _ := strconv.Atoi(xp)
-
-	userExperience, err := handler.UserExperienceService.AddXP(num, xpNum)
+func (handler *UserExperienceHandler) AddXP(ctx context.Context, req *pb.AddXPRequest) (*pb.UserExperience, error) {
+	userExperience, err := handler.UserExperienceService.AddXP(int(req.Id), int(req.Xp))
 	if err != nil {
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
+		return nil, fmt.Errorf("user experience with id %d not found: %v", req.Id, err)
 	}
-	writer.WriteHeader(http.StatusOK)
-	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(userExperience)
-}
 
-func (handler *UserExperienceHandler) Create(writer http.ResponseWriter, req *http.Request) {
-	var userExperience model.UserExperience
-	err := json.NewDecoder(req.Body).Decode(&userExperience)
-	
-	if err != nil {
-		println("Error while parsing json: Create user experience")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
+	return &pb.UserExperience{
+		Id:     int32(userExperience.ID),
+		UserId: int32(userExperience.UserID),
+		Xp:     int32(userExperience.XP),
+		Level:  int32(userExperience.Level),
+	}, nil
+}
+func (handler *UserExperienceHandler) Create(ctx context.Context, req *pb.UserExperience) (*pb.UserExperience, error) {
+	// Check for nil on the request and user experience data
+	if req == nil {
+		return nil, fmt.Errorf("request or user experience data is nil")
+	}
+
+	// Assuming the UserExperience struct fields are properly typed and don't need conversion
+	userExperience := model.UserExperience{
+		ID:     int(req.Id),
+		UserID: int(req.UserId),
+		XP:     int(req.Xp),
+		Level:  int(req.Level),
+	}
+
+	if handler.UserExperienceService == nil {
+		return nil, fmt.Errorf("user experience service is not initialized")
 	}
 
 	createdUserExperience, err := handler.UserExperienceService.Create(&userExperience)
 	if err != nil {
-		println("Error while creating a new user experience")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
+		log.Printf("Error creating user experience: %v", err) // Use your preferred logging method
+		return nil, fmt.Errorf("failed to create user experience: %v", err)
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(writer).Encode(createdUserExperience); err != nil {
-		println("Error while encoding user experience to JSON")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	return &pb.UserExperience{
+		Id:     int32(createdUserExperience.ID),
+		UserId: int32(createdUserExperience.UserID),
+		Xp:     int32(createdUserExperience.XP),
+		Level:  int32(createdUserExperience.Level),
+	}, nil
 }
 
-func (handler *UserExperienceHandler) Delete(writer http.ResponseWriter, req *http.Request) {
-	id := mux.Vars(req)["id"]
-	err := handler.UserExperienceService.Delete(id)
+func (handler *UserExperienceHandler) Delete(ctx context.Context, req *pb.UserExperience) (*pb.DeleteUserExperienceResponse, error) {
+	idStr := strconv.Itoa(int(req.Id))
+	err := handler.UserExperienceService.Delete(idStr)
 	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
+		return &pb.DeleteUserExperienceResponse{}, fmt.Errorf("failed to delete user experience with id %d: %v", req.Id, err)
 	}
-	writer.WriteHeader(http.StatusOK)
-	writer.Header().Set("Content-Type", "application-json")
+	return &pb.DeleteUserExperienceResponse{}, nil
 }
 
-func (handler *UserExperienceHandler) Update(writer http.ResponseWriter, req *http.Request) {
-	var userExperience model.UserExperience
-	err := json.NewDecoder(req.Body).Decode(&userExperience)
-
-	if err != nil {
-		println("Error while parsing json: Update user experience")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
+func (handler *UserExperienceHandler) Update(ctx context.Context, req *pb.UserExperience) (*pb.UserExperience, error) {
+	userExperience := model.UserExperience{
+		ID:     int(req.Id),
+		UserID: int(req.UserId),
+		XP:     int(req.Xp),
+		Level:  int(req.Level),
 	}
-	
 	updatedUserExperience, err := handler.UserExperienceService.Update(&userExperience)
-	
 	if err != nil {
-		println("Error while updating")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
+		return nil, err
 	}
 
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
-	
-	if err := json.NewEncoder(writer).Encode(updatedUserExperience); err != nil {
-		println("Error while encoding user experience to JSON")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	return &pb.UserExperience{
+		Id:     int32(updatedUserExperience.ID),
+		UserId: int32(updatedUserExperience.UserID),
+		Xp:     int32(updatedUserExperience.XP),
+		Level:  int32(updatedUserExperience.Level),
+	}, nil
 }

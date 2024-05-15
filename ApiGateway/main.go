@@ -2,6 +2,7 @@ package main
 
 import (
 	stakeholder_service "api-gateway/proto/stakeholder-service"
+	user_experience_service "api-gateway/proto/user-experience-service"
 	"context"
 	"log"
 	"net/http"
@@ -28,6 +29,16 @@ func main() {
 		log.Fatalln("Failed to dial server:", err)
 	}
 
+	userExperienceConn, err := grpc.DialContext(
+		context.Background(),
+		os.Getenv("ENCOUNTERS_SERVICE_ADDRESS"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalln("Failed to dial user experience server:", err)
+	}
+
 	gwmux := runtime.NewServeMux()
 
 	client := stakeholder_service.NewStakeholderServiceClient(conn)
@@ -35,6 +46,13 @@ func main() {
 		context.Background(),
 		gwmux,
 		client,
+	)
+
+	client2 := user_experience_service.NewUserExperienceServiceClient(userExperienceConn)
+	err = user_experience_service.RegisterUserExperienceServiceHandlerClient(
+		context.Background(),
+		gwmux,
+		client2,
 	)
 
 	if err != nil {
