@@ -11,18 +11,30 @@ services:
     restart: always
     environment:
       STAKEHOLDERS_SERVICE_ADDRESS: go-stakeholders-service:8093
+<<<<<<< HEAD
       TOURS_SERVICE_ADDRESS: go-tours-service:8082
       GATEWAY_ADDRESS: ":9000"
     depends_on:
       - go-stakeholders-service
       - go-tour-service
+=======
+      ENCOUNTERS_SERVICE_ADDRESS: go-encounter-service:8090
+      GATEWAY_ADDRESS: ":9000"
+    depends_on:
+      - go-stakeholders-service
+      - go-encounter-service
+>>>>>>> fe297057b9a2d48f472c435ab48ee0a4ab51dbad
     networks:
       - database
     ports:
       - "9000:9000"
     expose:
       - "8093:8093"
+<<<<<<< HEAD
       - "8082:8082"
+=======
+      - "8090:8090"
+>>>>>>> fe297057b9a2d48f472c435ab48ee0a4ab51dbad
 
   explorer:
     build:

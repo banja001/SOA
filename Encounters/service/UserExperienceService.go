@@ -15,10 +15,10 @@ func (service *UserExperienceService) AddXP(id int, xp int) (*model.UserExperien
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %d not found", id))
 	}
-	userExperience.AddXP(xp);
-	userExperience.CalculateLevel();
+	userExperience.AddXP(xp)
+	userExperience.CalculateLevel()
 	service.UserExperienceRepo.Update(&userExperience)
-	
+
 	return &userExperience, nil
 }
 

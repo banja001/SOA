@@ -3,6 +3,7 @@ package main
 import (
 	stakeholder_service "api-gateway/proto/stakeholder-service"
 	tour_service "api-gateway/proto/tour-service"
+	user_experience_service "api-gateway/proto/user-experience-service"
 	"context"
 	"log"
 	"net/http"
@@ -26,7 +27,28 @@ func main() {
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		log.Fatalln("Failed to dial server:", err)
+		log.Fatalln("Failed to dial stakeholders server:", err)
+	}
+
+	userExperienceConn, err := grpc.DialContext(
+		context.Background(),
+		os.Getenv("ENCOUNTERS_SERVICE_ADDRESS"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalln("Failed to dial user experience server:", err)
+	}
+
+	// client tours
+	conn_tours, err := grpc.DialContext(
+		context.Background(),
+		os.Getenv("TOURS_SERVICE_ADDRESS"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalln("Failed to dial tours server:", err)
 	}
 
 	gwmux := runtime.NewServeMux()
@@ -41,30 +63,30 @@ func main() {
 		log.Fatalln("Failed to register gateway stakeholders:", err)
 	}
 
-
-	// client tours
-	conn_tours, err := grpc.DialContext(
+	client_uxp := user_experience_service.NewUserExperienceServiceClient(userExperienceConn)
+	err = user_experience_service.RegisterUserExperienceServiceHandlerClient(
 		context.Background(),
-		os.Getenv("STAKEHOLDERS_SERVICE_ADDRESS"),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
+		gwmux,
+		client_uxp,
 	)
 	if err != nil {
-		log.Fatalln("Failed to dial server:", err)
+		log.Fatalln("Failed to register gateway user xp:", err)
 	}
-
-	gwmux_tours := runtime.NewServeMux()
 
 	client_tours := tour_service.NewTourServiceClient(conn_tours)
 	err = tour_service.RegisterTourServiceHandlerClient(
 		context.Background(),
-		gwmux_tours,
+		gwmux,
 		client_tours,
 	)
 
 	if err != nil {
 		log.Fatalln("Failed to register gateway tours:", err)
 	}
+
+	
+
+
 
 	gwServer := &http.Server{
 		Addr:    os.Getenv("GATEWAY_ADDRESS"),

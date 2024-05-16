@@ -44,7 +44,7 @@ func (handler *TourKeypointHandler) Update(ctx context.Context, req *tours.TourK
 	if err != nil {
 		return nil, err
 	}
-	return &tours.TourKeypoint{TourKeypoint: updatedTourKeypoint}, nil
+	return &tours.TourKeypoint{TourKeypoint: &updatedTourKeypoint}, nil
 }
 
 func (handler *TourKeypointHandler) Delete(ctx context.Context, req *tours.TourKeypointIdRequest) (*tours.EmptyResponse, error)  {
