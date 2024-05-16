@@ -17,3 +17,11 @@ INSERT INTO public.users(
     id, username, password, role, is_active, reset_password_token, email_verification_token, person_id)
 VALUES 
     (-4, 'turista', '$2a$10$DE9tdj0AIpgAN1.TtfVHDuinqJqwU57fxejSZyCmertgqhzXJi90K', 2, true, null, null, -4);
+INSERT INTO public.users(
+    id, username, password, role, is_active, reset_password_token, email_verification_token, person_id)
+VALUES 
+    (-1, 'admin', '$2a$10$DE9tdj0AIpgAN1.TtfVHDuinqJqwU57fxejSZyCmertgqhzXJi90K', 0, true, null, null, -1);
+    INSERT INTO public.users(
+    id, username, password, role, is_active, reset_password_token, email_verification_token, person_id)
+VALUES 
+    (-2, 'autor', '$2a$10$DE9tdj0AIpgAN1.TtfVHDuinqJqwU57fxejSZyCmertgqhzXJi90K', 1, true, null, null, -2);
