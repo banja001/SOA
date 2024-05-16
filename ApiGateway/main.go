@@ -17,9 +17,6 @@ import (
 )
 
 func main() {
-
-	//cfg := config.GetConfig()
-
 	conn, err := grpc.DialContext(
 		context.Background(),
 		os.Getenv("STAKEHOLDERS_SERVICE_ADDRESS"),
@@ -60,7 +57,7 @@ func main() {
 		client,
 	)
 	if err != nil {
-		log.Fatalln("Failed to register gateway stakeholders:", err)
+		log.Fatalln("Failed to register stakeholders gateway:", err)
 	}
 
 	client_uxp := user_experience_service.NewUserExperienceServiceClient(userExperienceConn)
@@ -79,7 +76,6 @@ func main() {
 		gwmux,
 		client_tours,
 	)
-
 	if err != nil {
 		log.Fatalln("Failed to register gateway tours:", err)
 	}
@@ -109,5 +105,4 @@ func main() {
 	if err = gwServer.Close(); err != nil {
 		log.Fatalln("error while stopping server: ", err)
 	}
-
 }

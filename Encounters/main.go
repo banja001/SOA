@@ -1,18 +1,23 @@
 package main
 
 import (
+	"context"
 	"encgo/handler"
 	"encgo/model"
 	user_experience "encgo/proto/user-experience"
 	"encgo/repo"
 	"encgo/service"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
+	"github.com/dgrijalva/jwt-go"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -92,6 +97,29 @@ func initDB() *gorm.DB {
 // 	router.HandleFunc("/challenge-execution/{id}", handler.Delete).Methods("DELETE")
 // }
 
+func TokenValidationInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("missing metadata")
+	}
+	tokens := md.Get("authorization")
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("missing token")
+	}
+	tokenString := tokens[0]
+
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("explorer_secret_key"), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return handler(ctx, req)
+}
+
 func main() {
 	database := initDB()
 	if database == nil {
@@ -117,7 +145,9 @@ func main() {
 		}
 	}(listener)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(TokenValidationInterceptor),
+	)
 	reflection.Register(grpcServer)
 	user_experience.RegisterUserExperienceServiceServer(grpcServer, handler)
 
