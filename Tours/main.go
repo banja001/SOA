@@ -111,7 +111,7 @@ func main() {
 	service := &service.TourKeypointService{TourKeypointRepo: repo}
 	handler := &handler.TourKeypointHandler{TourKeypointService: service}
 
-	listener, err := net.Listen("tcp", ":8093")
+	listener, err := net.Listen("tcp", os.Getenv("TOURS_SERVICE_ADDRESS"))
 
 	if err != nil {
 		log.Fatalln(err)
@@ -127,6 +127,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	tours.RegisterTourServiceServer(grpcServer, handler)
+	log.Println("Serving gRPC on: ",  os.Getenv("TOURS_SERVICE_ADDRESS"))
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {

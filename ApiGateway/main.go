@@ -40,7 +40,7 @@ func main() {
 		log.Fatalln("Failed to dial user experience server:", err)
 	}
 
-	// client tours
+	
 	conn_tours, err := grpc.DialContext(
 		context.Background(),
 		os.Getenv("TOURS_SERVICE_ADDRESS"),
