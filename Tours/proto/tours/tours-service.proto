@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option go_package = "proto/tours";
+
+service TourService {
+  rpc Get (TourKeypointIdRequest) returns (TourKeypoint);
+  rpc Create (TourKeypoint) returns (TourKeypoint);
+  rpc Update (TourKeypoint) returns (TourKeypoint);
+  rpc Delete (TourKeypointIdRequest) returns (EmptyResponse);
+}
+
+message TourKeypointIdRequest{
+  int32 id = 1;
+}
+
+message TourKeypoint{
+  int32 Id = 1;
+  string Name = 2;
+  string Description = 3;
+  string Image = 4;
+  double Latitude = 5;
+  double Longitude = 6;
+  int32 TourId = 7;
+  string Secret = 8;
+  int32 PositionInTour = 9;
+  int32 PublicPointId = 10;
+}
+
+message EmptyResponse{
+}

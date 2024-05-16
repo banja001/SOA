@@ -2,6 +2,7 @@ package main
 
 import (
 	stakeholder_service "api-gateway/proto/stakeholder-service"
+	tour_service "api-gateway/proto/tour-service"
 	"context"
 	"log"
 	"net/http"
@@ -36,9 +37,33 @@ func main() {
 		gwmux,
 		client,
 	)
+	if err != nil {
+		log.Fatalln("Failed to register gateway stakeholders:", err)
+	}
+
+
+	// client tours
+	conn_tours, err := grpc.DialContext(
+		context.Background(),
+		os.Getenv("STAKEHOLDERS_SERVICE_ADDRESS"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalln("Failed to dial server:", err)
+	}
+
+	gwmux_tours := runtime.NewServeMux()
+
+	client_tours := tour_service.NewTourServiceClient(conn_tours)
+	err = tour_service.RegisterTourServiceHandlerClient(
+		context.Background(),
+		gwmux_tours,
+		client_tours,
+	)
 
 	if err != nil {
-		log.Fatalln("Failed to register gateway:", err)
+		log.Fatalln("Failed to register gateway tours:", err)
 	}
 
 	gwServer := &http.Server{

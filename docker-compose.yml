@@ -1,7 +1,6 @@
-version: '3.9'
+version: "3.9"
 
 services:
-
   api-gateway:
     image: api-gateway
     container_name: api-gateway
@@ -10,17 +9,20 @@ services:
       context: ./ApiGateway/
       dockerfile: Dockerfile
     restart: always
-    environment: 
+    environment:
       STAKEHOLDERS_SERVICE_ADDRESS: go-stakeholders-service:8093
+      TOURS_SERVICE_ADDRESS: go-tours-service:8082
       GATEWAY_ADDRESS: ":9000"
     depends_on:
       - go-stakeholders-service
+      - go-tour-service
     networks:
       - database
     ports:
       - "9000:9000"
     expose:
       - "8093:8093"
+      - "8082:8082"
 
   explorer:
     build:
@@ -87,7 +89,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-        
+
   go-follower-service:
     build:
       context: ./Followers/
@@ -195,7 +197,6 @@ volumes:
   mongo_store:
   mongo_express_data:
   neo4j_data:
-
 
 networks:
   database:

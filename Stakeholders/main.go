@@ -65,7 +65,6 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-	println("Server starting")
 	//startServer(database)
 	repo := &repo.UserRepository{DatabaseConnection: database}
 	service := &service.AuthenticationService{UserRepository: repo}
@@ -87,7 +86,7 @@ func main() {
 	// Bootstrap gRPC server.
 	grpcServer := grpc.NewServer()
 	reflection.Register(grpcServer)
-	println("provera")
+
 	// Bootstrap gRPC service server and respond to request.
 	//authenticationService := service.AuthenticationService{}
 	stakeholders.RegisterStakeholderServiceServer(grpcServer, service)

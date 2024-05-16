@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option go_package = "proto/tour-service";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service TourService{
+    rpc Get(TourKeypointIdRequest) returns (TourKeypoint) {
+    option(google.api.http) = {
+      get: "/tourKeyPoint/{id}"
+    };
+  }
+
+
+  rpc Create(TourKeypoint) returns (TourKeypoint) {
+    option(google.api.http) = {
+      post: "/tourKeyPoint"
+      body: "*"
+    };
+  }
+
+  rpc Update(TourKeypoint) returns (TourKeypoint) {
+    option(google.api.http) = {
+      put: "/tourKeyPoint"
+      body: "*"
+    };
+  }
+
+  rpc Delete(TourKeypointIdRequest) returns (EmptyResponse) {
+    option(google.api.http) = {
+      delete: "/tourKeyPoint/{id}"
+    };
+  }
+}
+
+
+message TourKeypointIdRequest{
+  int32 id = 1;
+}
+
+message TourKeypoint{
+  int32 Id = 1;
+  string Name = 2;
+  string Description = 3;
+  string Image = 4;
+  double Latitude = 5;
+  double Longitude = 6;
+  int32 TourId = 7;
+  string Secret = 8;
+  int32 PositionInTour = 9;
+  int32 PublicPointId = 10;
+}
+
+message EmptyResponse{
+}
