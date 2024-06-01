@@ -37,7 +37,6 @@ func main() {
 		log.Fatalln("Failed to dial user experience server:", err)
 	}
 
-	
 	conn_tours, err := grpc.DialContext(
 		context.Background(),
 		os.Getenv("TOURS_SERVICE_ADDRESS"),
@@ -79,10 +78,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to register gateway tours:", err)
 	}
-
-	
-
-
 
 	gwServer := &http.Server{
 		Addr:    os.Getenv("GATEWAY_ADDRESS"),

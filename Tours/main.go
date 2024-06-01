@@ -2,7 +2,7 @@ package main
 
 import (
 	"database-example/handler"
-	"database-example/proto/tours"
+	tours "database-example/proto/tours"
 	"database-example/repo"
 	"database-example/service"
 	"fmt"
@@ -11,15 +11,18 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"context"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -55,7 +58,6 @@ func startServer(client *mongo.Client) {
 // 	router.HandleFunc("/tourKeypoints/update", handler.Update).Methods("PUT")
 // 	router.HandleFunc("/tourKeypoints/delete/{id}", handler.Delete).Methods("DELETE")
 // }
-
 
 func initTours(router *mux.Router, client *mongo.Client) {
 	repo := &repo.TourRepository{DatabaseConnection: client}
@@ -105,13 +107,13 @@ func main() {
 
 	log.Println("Connected to MongoDB")
 
-
-	// gateway
 	repo := &repo.TourKeypointRepository{DatabaseConnection: client}
 	service := &service.TourKeypointService{TourKeypointRepo: repo}
 	handler := &handler.TourKeypointHandler{TourKeypointService: service}
 
-	listener, err := net.Listen("tcp", os.Getenv("TOURS_SERVICE_ADDRESS"))
+	//cfg := config.GetConfig()
+
+	listener, err := net.Listen("tcp", ":8082")
 
 	if err != nil {
 		log.Fatalln(err)
@@ -123,11 +125,13 @@ func main() {
 		}
 	}(listener)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(TokenValidationInterceptor),
+	)
 	reflection.Register(grpcServer)
-
 	tours.RegisterTourServiceServer(grpcServer, handler)
-	log.Println("Serving gRPC on: ",  os.Getenv("TOURS_SERVICE_ADDRESS"))
+
+	println("Server starting")
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
@@ -141,6 +145,27 @@ func main() {
 	<-stopCh
 
 	grpcServer.Stop()
+}
 
-	//startServer(client)
+func TokenValidationInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("missing metadata")
+	}
+	tokens := md.Get("authorization")
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("missing token")
+	}
+	tokenString := tokens[0]
+
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("explorer_secret_key"), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return handler(ctx, req)
 }

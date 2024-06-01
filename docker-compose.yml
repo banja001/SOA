@@ -62,7 +62,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5432 sslmode=disable
+      - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5433 sslmode=disable
 
   go-stakeholders-service:
     build:
@@ -75,7 +75,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL2=host=db user=postgres password=super dbname=usersdb port=5432 sslmode=disable
+      - DATABASE_URL2=host=db user=postgres password=super dbname=usersdb port=5433 sslmode=disable
 
   go-tour-service:
     build:
