@@ -35,6 +35,11 @@ builder.Services.AddHttpClient("followerMicroservice", (client) =>
     var service = Environment.GetEnvironmentVariable("GO_FOLLOWER_SERVICE_HOST") ?? "localhost";
     client.BaseAddress = new Uri($"http://{service}:8060");
 });
+builder.Services.AddHttpClient("stakeholdersMicroservice", (client) =>
+{
+    var service = Environment.GetEnvironmentVariable("GO_STAKEHOLDERS_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8093");
+});
 
 builder.Services.AddSignalR(o =>
 {

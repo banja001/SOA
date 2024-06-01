@@ -1,86 +1,100 @@
 package handler
 
 import (
+	"context"
 	"database-example/model"
+	pb "database-example/proto/tours"
 	"database-example/service"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type TourKeypointHandler struct {
+	pb.UnimplementedTourServiceServer
 	TourKeypointService *service.TourKeypointService
 }
 
-func (handler *TourKeypointHandler) Get(writer http.ResponseWriter, req *http.Request) {
-	id := mux.Vars(req)["id"]
-	tourKeypoint, err := handler.TourKeypointService.Find(id)
-	writer.Header().Set("Content-Type", "application/json")
+func (handler *TourKeypointHandler) Get(ctx context.Context, req *pb.TourKeypointIdRequest) (*pb.TourKeypoint, error) {
+	tourKeypoint, err := handler.TourKeypointService.Find(string(req.Id))
 	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
+		return nil, fmt.Errorf("tour keypoint id %d not found", req.Id)
 	}
-	fmt.Printf("sss:")
-	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(tourKeypoint)
+	return modelToProto(tourKeypoint), nil
 }
 
-func (handler *TourKeypointHandler) Create(writer http.ResponseWriter, req *http.Request) {
-	var tourKeypoint model.TourKeypoint
-	err := json.NewDecoder(req.Body).Decode(&tourKeypoint)
+func (handler *TourKeypointHandler) Create(ctx context.Context, req *pb.TourKeypoint) (*pb.TourKeypoint, error){
+	if req == nil {
+		return nil, fmt.Errorf("request or tour keypoint data is nil")
+	}
+	
+	tourKeypoint := protoToModel(req)
+
+	if tourKeypoint == nil {
+		return nil, errors.New("Error while parsing tour keypoint! (create)")
+	}
+	createdTourKeypoint, err := handler.TourKeypointService.Create(tourKeypoint)
 	if err != nil {
-		println("Error while parsing json: Create Keypoint")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tour keypoint: %v", err)
+		}
 	}
-	createdTourKeypoint, err := handler.TourKeypointService.Create(&tourKeypoint)
-	if err != nil {
-		println("Error while creating a new tourkeypoint")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
-	}
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(writer).Encode(createdTourKeypoint); err != nil {
-		println("Error while encoding tour to JSON")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+
+	return modelToProto(createdTourKeypoint), nil
 }
 
-func (handler *TourKeypointHandler) Update(writer http.ResponseWriter, req *http.Request) {
-	var tourKeypoint model.TourKeypoint
-	err := json.NewDecoder(req.Body).Decode(&tourKeypoint)
+func (handler *TourKeypointHandler) Update(ctx context.Context, req *pb.TourKeypoint) (*pb.TourKeypoint, error){
+	if req == nil {
+		return nil, fmt.Errorf("request or tour keypoint data is nil")
+	}
+	
+	tourKeypoint := protoToModel(req)
+	if tourKeypoint == nil {
+		return nil, errors.New("Error while parsing tour keypoint! (update)")
+	}
+	updatedTourKeypoint, err := handler.TourKeypointService.Update(tourKeypoint)
 	if err != nil {
-		println("Error while parsing json: Update Keypoint")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
+		return nil, fmt.Errorf("failed to update tour keypoint: %v", err)
 	}
-	updatedTourKeypoint, err := handler.TourKeypointService.Update(&tourKeypoint)
-	if err != nil {
-		println("Error while updating a new tourkeypoint")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
-	}
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(writer).Encode(updatedTourKeypoint); err != nil {
-		println("Error while encoding tour to JSON")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	return modelToProto(updatedTourKeypoint), nil
 }
 
-func (handler *TourKeypointHandler) Delete(writer http.ResponseWriter, req *http.Request) {
-	id := mux.Vars(req)["id"]
-	err := handler.TourKeypointService.Delete(id)
-	writer.Header().Set("Content-Type", "application/json")
+func (handler *TourKeypointHandler) Delete(ctx context.Context, req *pb.TourKeypointIdRequest) (*pb.EmptyResponse, error)  {
+
+	err := handler.TourKeypointService.Delete(string(req.GetId()))
 	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
+		return nil, err
 	}
-	writer.WriteHeader(http.StatusOK)
-	writer.Header().Set("Content-Type", "application/json")
+	return &pb.EmptyResponse{}, nil
+}
+
+func modelToProto(model *model.TourKeypoint)*pb.TourKeypoint {
+
+    return &pb.TourKeypoint{
+        Id:               int32(model.ID),
+        Name:             string(model.Name),
+        Description:	  string(model.Description),
+        Image:            string(model.Image),
+		Latitude:         float64(model.Latitude),
+		Longitude:        float64(model.Longitude),
+		TourId:           int32(model.TourID),
+		Secret:           string(model.Secret),
+		PositionInTour:   int32(model.PositionInTour),
+		PublicPointId:    int32(model.PublicPointID),
+    }
+}
+
+func protoToModel(req *pb.TourKeypoint)*model.TourKeypoint {
+
+    return &model.TourKeypoint{
+        ID:             int(req.GetId()),
+        Name:           req.GetName(),
+        Description:    req.GetDescription(),
+        Image:          req.GetImage(),
+        Latitude:       float64(req.GetLatitude()),
+        Longitude:      float64(req.GetLongitude()),
+        TourID:         int(req.GetTourId()),
+        Secret:         req.GetSecret(),
+        PositionInTour: int(req.GetPositionInTour()),
+        PublicPointID:  int(req.GetPublicPointId()),
+    }
 }

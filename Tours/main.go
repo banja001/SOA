@@ -2,19 +2,28 @@ package main
 
 import (
 	"database-example/handler"
+	tours "database-example/proto/tours"
 	"database-example/repo"
 	"database-example/service"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 
 	"context"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/reflection"
 )
 
 func GetConnectionString() string {
@@ -31,7 +40,7 @@ func GetConnectionString() string {
 func startServer(client *mongo.Client) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	initTourKeypoints(router, client)
+	//initTourKeypoints(router, client)
 	initTours(router, client)
 	initSessions(router, client)
 
@@ -40,16 +49,15 @@ func startServer(client *mongo.Client) {
 	log.Fatal(http.ListenAndServe(":8082", router))
 }
 
-func initTourKeypoints(router *mux.Router, client *mongo.Client) {
-	repo := &repo.TourKeypointRepository{DatabaseConnection: client}
-	service := &service.TourKeypointService{TourKeypointRepo: repo}
-	handler := &handler.TourKeypointHandler{TourKeypointService: service}
-	router.HandleFunc("/tourKeypoints/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/tourKeypoints/create", handler.Create).Methods("POST")
-	router.HandleFunc("/tourKeypoints/update", handler.Update).Methods("PUT")
-	router.HandleFunc("/tourKeypoints/delete/{id}", handler.Delete).Methods("DELETE")
-}
-
+// func initTourKeypoints(router *mux.Router, client *mongo.Client) {
+// 	repo := &repo.TourKeypointRepository{DatabaseConnection: client}
+// 	service := &service.TourKeypointService{TourKeypointRepo: repo}
+// 	handler := &handler.TourKeypointHandler{TourKeypointService: service}
+// 	router.HandleFunc("/tourKeypoints/{id}", handler.Get).Methods("GET")
+// 	router.HandleFunc("/tourKeypoints/create", handler.Create).Methods("POST")
+// 	router.HandleFunc("/tourKeypoints/update", handler.Update).Methods("PUT")
+// 	router.HandleFunc("/tourKeypoints/delete/{id}", handler.Delete).Methods("DELETE")
+// }
 
 func initTours(router *mux.Router, client *mongo.Client) {
 	repo := &repo.TourRepository{DatabaseConnection: client}
@@ -75,6 +83,7 @@ func initSessions(router *mux.Router, client *mongo.Client) {
 }
 
 func main() {
+	// mongo
 	connectionStr := GetConnectionString()
 	fmt.Printf("Connecting to MongoDB with URI: %s\n", connectionStr)
 	opts := options.Client().ApplyURI(connectionStr)
@@ -98,5 +107,65 @@ func main() {
 
 	log.Println("Connected to MongoDB")
 
-	startServer(client)
+	repo := &repo.TourKeypointRepository{DatabaseConnection: client}
+	service := &service.TourKeypointService{TourKeypointRepo: repo}
+	handler := &handler.TourKeypointHandler{TourKeypointService: service}
+
+	//cfg := config.GetConfig()
+
+	listener, err := net.Listen("tcp", ":8082")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func(listener net.Listener) {
+		err := listener.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(listener)
+
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(TokenValidationInterceptor),
+	)
+	reflection.Register(grpcServer)
+	tours.RegisterTourServiceServer(grpcServer, handler)
+
+	println("Server starting")
+
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatal("server error: ", err)
+		}
+	}()
+
+	stopCh := make(chan os.Signal)
+	signal.Notify(stopCh, syscall.SIGTERM)
+
+	<-stopCh
+
+	grpcServer.Stop()
+}
+
+func TokenValidationInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("missing metadata")
+	}
+	tokens := md.Get("authorization")
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("missing token")
+	}
+	tokenString := tokens[0]
+
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("explorer_secret_key"), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return handler(ctx, req)
 }
