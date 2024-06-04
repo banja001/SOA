@@ -12,8 +12,9 @@ type SessionAndKeypoint struct {
 }
 
 type AllDetails struct {
-	UserXp UserExperience
-	SAndK  SessionAndKeypoint
+	//UserXp UserExperience
+	SessionId  string
+	KeypointId int
 }
 
 type GiveXPCommandType int8
