@@ -1,18 +1,18 @@
-package application
+package service
 
 import (
-	events "github.com/tamararankovic/microservices_demo/common/saga/create_order"
+	events "github.com/banja001/SOA/saga/give_xp"
+
 	saga "github.com/tamararankovic/microservices_demo/common/saga/messaging"
-	"github.com/tamararankovic/microservices_demo/ordering_service/domain"
 )
 
-type CreateOrderOrchestrator struct {
+type GiveXPOrchestrator struct {
 	commandPublisher saga.Publisher
 	replySubscriber  saga.Subscriber
 }
 
-func NewCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscriber) (*CreateOrderOrchestrator, error) {
-	o := &CreateOrderOrchestrator{
+func NewCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscriber) (*GiveXPOrchestrator, error) {
+	o := &GiveXPOrchestrator{
 		commandPublisher: publisher,
 		replySubscriber:  subscriber,
 	}
@@ -23,48 +23,33 @@ func NewCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscr
 	return o, nil
 }
 
-func (o *CreateOrderOrchestrator) Start(order *domain.Order, address string) error {
-	event := &events.CreateOrderCommand{
-		Type: events.UpdateInventory,
-		Order: events.OrderDetails{
-			Id:      order.Id.Hex(),
-			Items:   make([]events.OrderItem, 0),
-			Address: address,
+func (o *GiveXPOrchestrator) Start(keypointId int, sessionId string) error {
+	event := &events.GiveXpCommand{
+		Type: events.CompleteKeypoint,
+		Details: events.AllDetails{
+			//UserXp: *userXp,
+			//SAndK:  *keypoint,
+			KeypointId: keypointId,
+			SessionId:  sessionId,
 		},
-	}
-	for _, item := range order.Items {
-		eventItem := events.OrderItem{
-			Product: events.Product{
-				Id:    item.Product.Id,
-				Color: events.Color{Code: item.Product.Color.Code},
-			},
-			Quantity: item.Quantity,
-		}
-		event.Order.Items = append(event.Order.Items, eventItem)
 	}
 	return o.commandPublisher.Publish(event)
 }
 
-func (o *CreateOrderOrchestrator) handle(reply *events.CreateOrderReply) {
-	command := events.CreateOrderCommand{Order: reply.Order}
+func (o *GiveXPOrchestrator) handle(reply *events.GiveXpReply) {
+	command := events.GiveXpCommand{Details: reply.Details}
 	command.Type = o.nextCommandType(reply.Type)
 	if command.Type != events.UnknownCommand {
 		_ = o.commandPublisher.Publish(command)
 	}
 }
 
-func (o *CreateOrderOrchestrator) nextCommandType(reply events.CreateOrderReplyType) events.CreateOrderCommandType {
+func (o *GiveXPOrchestrator) nextCommandType(reply events.GiveXPReplyType) events.GiveXPCommandType {
 	switch reply {
-	case events.InventoryUpdated:
-		return events.ShipOrder
-	case events.InventoryNotUpdated:
-		return events.CancelOrder
-	case events.InventoryRolledBack:
-		return events.CancelOrder
-	case events.OrderShippingScheduled:
-		return events.ApproveOrder
-	case events.OrderShippingNotScheduled:
-		return events.RollbackInventory
+	case events.KeypointCompleted:
+		return events.AddXP
+	case events.KeypointNotCompleted:
+		return events.RollbackKeypoint
 	default:
 		return events.UnknownCommand
 	}

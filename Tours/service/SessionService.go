@@ -7,7 +7,14 @@ import (
 )
 
 type SessionService struct {
-	SessionRepo *repo.SessionRepository
+	SessionRepo  *repo.SessionRepository
+	orchestrator *GiveXPOrchestrator
+}
+
+func NewSessionService(orchestrator *GiveXPOrchestrator) *SessionService {
+	return &SessionService{
+		orchestrator: orchestrator,
+	}
 }
 
 func (service *SessionService) Create(session *model.Session) (*model.Session, error) {
@@ -23,10 +30,11 @@ func (service *SessionService) Update(session *model.Session) (*model.Session, e
 	if err != nil {
 		return nil, err
 	}
+
 	return updatedSession, nil
 }
 
-func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int) (*model.Session, error){
+func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int, orchestrator *GiveXPOrchestrator) (*model.Session, error) {
 	session, err := service.SessionRepo.FindById(sessionId)
 	if err != nil {
 		return nil, err
@@ -37,20 +45,20 @@ func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int
 	if err != nil {
 		return nil, err
 	}
-
+	err = service.orchestrator.Start(order, address)
 	return updatedSession, nil
 }
 
-func (service *SessionService) AddKeypoint(session *model.Session, keypointId int) (*model.Session){
+func (service *SessionService) AddKeypoint(session *model.Session, keypointId int) *model.Session {
 	currentTime := time.Now()
 	completedKeypoint := model.CompletedKeyPoint{
-		KeypointId: keypointId,
+		KeypointId:     keypointId,
 		CompletionTime: &currentTime,
 	}
 
 	completeKeypointCheck := false
-	for _, keypoint := range session.CompletedKeyPoints{
-		if keypoint.KeypointId == keypointId{
+	for _, keypoint := range session.CompletedKeyPoints {
+		if keypoint.KeypointId == keypointId {
 			completeKeypointCheck = true
 			break
 		}
@@ -59,6 +67,6 @@ func (service *SessionService) AddKeypoint(session *model.Session, keypointId in
 	if !completeKeypointCheck {
 		session.CompletedKeyPoints = append(session.CompletedKeyPoints, completedKeypoint)
 	}
-	
+
 	return session
 }

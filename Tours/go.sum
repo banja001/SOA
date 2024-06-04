@@ -1,3 +1,5 @@
+github.com/banja001/SOA v0.0.0-20240604143233-8da1fade9f64 h1:hTpTcHnB1wxAt7lK8qtBWy9U8iBv+7G0HtqcaDQyX60=
+github.com/banja001/SOA v0.0.0-20240604143233-8da1fade9f64/go.mod h1:CsXK+NBADCUIJq8RtFzguT1RjXEqMAhMpfg7pVtrQKQ=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
