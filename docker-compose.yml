@@ -1,5 +1,10 @@
 version: "3.9"
 
+x-logging: &fluent-bit
+  driver: fluentd
+  options:
+    fluentd-address: ${FLUENT_BIT_ADDRESS}:24224
+
 services:
   api-gateway:
     image: api-gateway
@@ -20,12 +25,14 @@ services:
       - go-encounter-service
     networks:
       - database
+      - monitoring
     ports:
       - "9000:9000"
     expose:
       - "8093:8093"
       - "8082:8082"
       - "8090:8090"
+    logging: *fluent-bit
 
   explorer:
     build:
@@ -33,6 +40,7 @@ services:
       target: final
     networks:
       - database
+      - monitoring
     ports:
       - "44333:80"
     restart: on-failure
@@ -50,6 +58,7 @@ services:
       - go-tour-service
       - go-encounter-service
       - go-follower-service
+    logging: *fluent-bit
 
   go-encounter-service:
     build:
@@ -59,10 +68,12 @@ services:
     restart: on-failure
     networks:
       - database
+      - monitoring
     depends_on:
       - db
     environment:
       - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5433 sslmode=disable
+    logging: *fluent-bit
 
   go-stakeholders-service:
     build:
@@ -72,10 +83,12 @@ services:
     restart: on-failure
     networks:
       - database
+      - monitoring
     depends_on:
       - db
     environment:
       - DATABASE_URL2=host=db user=postgres password=super dbname=usersdb port=5433 sslmode=disable
+    logging: *fluent-bit
 
   go-tour-service:
     build:
@@ -85,6 +98,7 @@ services:
     restart: on-failure
     networks:
       - database
+      - monitoring
     environment:
       # protocol://username:password@hostname:port
       - MONGO_DB_URI=mongodb://root:pass@mongo:27017
@@ -92,6 +106,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+    logging: *fluent-bit
 
   go-follower-service:
     build:
@@ -101,6 +116,7 @@ services:
       - "8060:8060"
     networks:
       - database
+      - monitoring
     environment:
       - PORT=8060
       - NEO4J_DB=bolt://neo4j:7687
@@ -109,6 +125,7 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+    logging: *fluent-bit
 
   # NoSQL: Neo4J DB
   neo4j:
@@ -205,3 +222,5 @@ networks:
   database:
     name: database
     driver: bridge
+  monitoring:
+    external: true
