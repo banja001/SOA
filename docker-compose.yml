@@ -1,5 +1,10 @@
 version: "3.9"
 
+x-logging: &fluent-bit
+  driver: fluentd
+  options:
+    fluentd-address: ${FLUENT_BIT_ADDRESS}:24224
+
 services:
   api-gateway:
     image: api-gateway
@@ -27,6 +32,7 @@ services:
       - "8093:8093"
       - "8082:8082"
       - "8090:8090"
+    logging: *fluent-bit
 
   explorer:
     build:
@@ -51,6 +57,7 @@ services:
       - go-tour-service
       - go-encounter-service
       - go-follower-service
+    logging: *fluent-bit
 
   go-encounter-service:
     build:
@@ -64,6 +71,7 @@ services:
       - db
     environment:
       - DATABASE_URL=host=db user=postgres password=super dbname=encountersdb port=5433 sslmode=disable
+    logging: *fluent-bit
 
   go-stakeholders-service:
     build:
@@ -77,6 +85,7 @@ services:
       - db
     environment:
       - DATABASE_URL2=host=db user=postgres password=super dbname=usersdb port=5433 sslmode=disable
+    logging: *fluent-bit
 
   go-tour-service:
     build:
@@ -93,6 +102,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+    logging: *fluent-bit
 
   go-follower-service:
     build:
@@ -111,6 +121,7 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+    logging: *fluent-bit
 
   # NoSQL: Neo4J DB
   neo4j:
