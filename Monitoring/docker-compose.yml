@@ -25,6 +25,16 @@ services:
     networks:
       - monitoring
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "14269:14269"
+      - "16686:16686"
+    environment:
+      JAEGER_AGENT_HOST: jaeger
+    networks:
+      - monitoring
+
   cadvisor:
     image: google/cadvisor:latest
     ports:
