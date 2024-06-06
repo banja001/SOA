@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database-example/config"
 	"database-example/handler"
 	tours "database-example/proto/tours"
 	"database-example/repo"
@@ -17,8 +18,10 @@ import (
 
 	"context"
 
+	"github.com/banja001/SOA/saga/messaging/nats"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	saga "github.com/tamararankovic/microservices_demo/common/saga/messaging"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
@@ -168,4 +171,61 @@ func TokenValidationInterceptor(ctx context.Context, req interface{}, info *grpc
 	}
 
 	return handler(ctx, req)
+}
+
+type Server struct {
+	config *config.Config
+}
+
+func NewServer(config *config.Config) *Server {
+	return &Server{
+		config: config,
+	}
+}
+
+const (
+	QueueGroup = "add_xp_service"
+)
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
+}
+
+func (server *Server) initCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscriber) *service.GiveXPOrchestrator {
+	orchestrator, err := service.NewCreateOrderOrchestrator(publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return orchestrator
+}
+
+func (server *Server) initOrderService(orchestrator *service.GiveXPOrchestrator) *service.SessionService {
+	return service.NewSessionService(orchestrator)
+}
+
+func (server *Server) initCreateOrderHandler(service *service.SessionService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := handler.NewAddXPCommandHandler(service, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initOrderHandler(service *service.SessionService) *handler.SessionHandler {
+	return handler.NewSessionHandler(service)
 }

@@ -24,13 +24,17 @@ func NewCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscr
 }
 
 func (o *GiveXPOrchestrator) Start(keypointId int, sessionId string) error {
+	details := &events.SessionAndKeypoint{
+		KeypointId: keypointId,
+		SessionId:  sessionId,
+	}
 	event := &events.GiveXpCommand{
 		Type: events.CompleteKeypoint,
 		Details: events.AllDetails{
 			//UserXp: *userXp,
-			//SAndK:  *keypoint,
-			KeypointId: keypointId,
-			SessionId:  sessionId,
+			//SAndK: *details,
+			SessionId:  details.SessionId,
+			KeypointId: details.KeypointId,
 		},
 	}
 	return o.commandPublisher.Publish(event)

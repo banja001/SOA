@@ -195,7 +195,12 @@ services:
       - "8081:8081"
     volumes:
       - mongo_express_data:/data/db
-
+  nats:
+    image: nats
+    container_name: nats
+    restart: on-failure
+    networks:
+      - database
 volumes:
   mongo_store:
   mongo_express_data:

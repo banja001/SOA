@@ -8,6 +8,13 @@ import (
 
 type UserExperienceService struct {
 	UserExperienceRepo *repo.UserExperienceRepository
+	model              model.UserExperience
+}
+
+func NewProductService(store model.UserExperience) *UserExperienceService {
+	return &UserExperienceService{
+		model: store,
+	}
 }
 
 func (service *UserExperienceService) AddXP(id int, xp int) (*model.UserExperience, error) {

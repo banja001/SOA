@@ -13,6 +13,12 @@ type SessionHandler struct {
 	SessionService *service.SessionService
 }
 
+func NewSessionHandler(service *service.SessionService) *SessionHandler {
+	return &SessionHandler{
+		SessionService: service,
+	}
+}
+
 func (handler *SessionHandler) Create(writer http.ResponseWriter, req *http.Request) {
 	var session model.Session
 	err := json.NewDecoder(req.Body).Decode(&session)

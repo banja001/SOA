@@ -34,7 +34,7 @@ func (service *SessionService) Update(session *model.Session) (*model.Session, e
 	return updatedSession, nil
 }
 
-func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int, orchestrator *GiveXPOrchestrator) (*model.Session, error) {
+func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int) (*model.Session, error) {
 	session, err := service.SessionRepo.FindById(sessionId)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,8 @@ func (service *SessionService) CompleteKeypoint(sessionId string, keypointId int
 	if err != nil {
 		return nil, err
 	}
-	err = service.orchestrator.Start(order, address)
+
+	err = service.orchestrator.Start(keypointId, sessionId)
 	return updatedSession, nil
 }
 

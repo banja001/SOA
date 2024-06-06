@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encgo/config"
 	"encgo/handler"
 	"encgo/model"
 	user_experience "encgo/proto/user-experience"
@@ -15,7 +16,11 @@ import (
 	"strings"
 	"syscall"
 
+	cfg "github.com/banja001/SOA/Encounters/config"
+	saga "github.com/banja001/SOA/saga/messaging"
+	"github.com/banja001/SOA/saga/messaging/nats"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/tamararankovic/microservices_demo/ordering_service/startup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
@@ -54,6 +59,10 @@ func initDB() *gorm.DB {
 		log.Fatal("Error while running migration for challenges")
 	}
 	return database
+}
+
+type Server struct {
+	config *config.Config
 }
 
 // func startServer(database *gorm.DB) {
@@ -130,6 +139,14 @@ func main() {
 	repo := &repo.UserExperienceRepository{DatabaseConnection: database}
 	service := &service.UserExperienceService{UserExperienceRepo: repo}
 	handler := &handler.UserExperienceHandler{UserExperienceService: service}
+	config := cfg.NewConfig()
+	server := startup.NewServer(config)
+
+	commandSubscriber := server.initSubscriber(server.config.CreateOrderCommandSubject, QueueGroup)
+	replyPublisher := server.initPublisher(server.config.CreateOrderReplySubject)
+	server.initCreateOrderHandler(productService, replyPublisher, commandSubscriber)
+
+	productHandler := server.initProductHandler(productService)
 
 	//cfg := config.GetConfig()
 
@@ -165,4 +182,45 @@ func main() {
 	<-stopCh
 
 	grpcServer.Stop()
+}
+
+func NewServer(config *config.Config) *Server {
+	return &Server{
+		config: config,
+	}
+}
+
+const (
+	QueueGroup = "encounter_service"
+)
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
+}
+
+func (server *Server) initProductService(store model.UserExperience) *service.UserExperienceService {
+	return service.NewProductService(store)
+}
+
+func (server *Server) initCreateOrderHandler(service *service.UserExperienceService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := handler.NewAddxpCommandHandler(service, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
