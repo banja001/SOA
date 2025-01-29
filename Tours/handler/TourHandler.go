@@ -29,7 +29,7 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 	var tour model.Tour
 	err := json.NewDecoder(req.Body).Decode(&tour)
 	if err != nil {
-		println("Error while parsing json: Create Tour")
+		println("Error while parsing json: Create Tour: ", req.Body)
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -37,7 +37,7 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 	createdTour, err := handler.TourService.Create(&tour)
 	if err != nil {
 		println("Error while creating a new tour")
-		writer.WriteHeader(http.StatusExpectationFailed)
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -50,18 +50,18 @@ func (handler *TourHandler) Create(writer http.ResponseWriter, req *http.Request
 	}
 }
 
-func (handler *TourHandler) GetAll(writer http.ResponseWriter, req *http.Request) {
-	tours, err := handler.TourService.GetAll()
-	writer.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(writer).Encode(map[string]string{"error": err.Error()})
-		return
-	}
+// func (handler *TourHandler) GetAll(writer http.ResponseWriter, req *http.Request) {
+// 	tours, err := handler.TourService.GetAll()
+// 	writer.Header().Set("Content-Type", "application/json")
+// 	if err != nil {
+// 		writer.WriteHeader(http.StatusInternalServerError)
+// 		json.NewEncoder(writer).Encode(map[string]string{"error": err.Error()})
+// 		return
+// 	}
 
-	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(tours)
-}
+// 	writer.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(writer).Encode(tours)
+// }
 
 func (handler *TourHandler) Update(writer http.ResponseWriter, req *http.Request) {
 	var tour model.Tour

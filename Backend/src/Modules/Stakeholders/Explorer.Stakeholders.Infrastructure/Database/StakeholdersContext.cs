@@ -61,6 +61,7 @@ public class StakeholdersContext : DbContext
         modelBuilder.Entity<Follower>()
             .HasOne<Person>()
             .WithMany()
-            .HasForeignKey(f => f.FollowedId);  
+            .HasForeignKey(f => f.FollowedId);
+        modelBuilder.Entity<UserNews>();
     }
 }

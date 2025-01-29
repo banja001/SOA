@@ -124,6 +124,7 @@ export class ChallengeComponent implements OnInit {
     this.service.getChallenges().subscribe({
       next: (result: PagedResults<Challenge>) => {
         this.challenges = result.results;
+        console.log(result)
         if(this.challenges.length == 0){
           this.challengesAreEmpty = true;
         }

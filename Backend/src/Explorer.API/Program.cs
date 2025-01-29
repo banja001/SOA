@@ -2,6 +2,8 @@ using Explorer.API.Startup;
 using Explorer.Stakeholders.Core.Domain;
 
 using Explorer.Stakeholders.Core.UseCases;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,12 +21,24 @@ builder.Services.AddHostedService(
 
 builder.Services.AddHttpClient("toursMicroservice", (client) =>
 {
-    client.BaseAddress = new Uri("http://localhost:80");
+    var service = Environment.GetEnvironmentVariable("GO_TOUR_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8082");
 });
 
 builder.Services.AddHttpClient("encountersMicroservice", (client) =>
 {
-    client.BaseAddress = new Uri("http://localhost:8090");
+    var service = Environment.GetEnvironmentVariable("GO_ENCOUNTERS_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8090");
+});
+builder.Services.AddHttpClient("followerMicroservice", (client) =>
+{
+    var service = Environment.GetEnvironmentVariable("GO_FOLLOWER_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8060");
+});
+builder.Services.AddHttpClient("stakeholdersMicroservice", (client) =>
+{
+    var service = Environment.GetEnvironmentVariable("GO_STAKEHOLDERS_SERVICE_HOST") ?? "localhost";
+    client.BaseAddress = new Uri($"http://{service}:8093");
 });
 
 builder.Services.AddSignalR(o =>
@@ -49,7 +63,7 @@ app.UseRouting();
 app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
 app.UseAuthorization();
-app.UseAuthorization();
+//app.UseAuthentication();
 
 app.MapHub<PublicSiteHub>("hub");
 app.MapControllers();

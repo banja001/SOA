@@ -17,10 +17,11 @@ namespace Explorer.API.Controllers.Tourist
     {
         private readonly IBlogService _blogService;
         //private readonly ICommentService _commentService;
-
-        public BlogController(IBlogService blogService)
+        private readonly IHttpClientFactory _factory;
+        public BlogController(IBlogService blogService, IHttpClientFactory factory)
         {
             _blogService = blogService;
+            _factory = factory;
             //_commentService = commentService;
         }
 
@@ -125,11 +126,23 @@ namespace Explorer.API.Controllers.Tourist
             return CreateResponse(result);
         }
 
-        [HttpGet("getByAuthor/{authorId:int}")]
-        public ActionResult<List<BlogDto>> GetBlogsByAuthor(int authorId)
+        [HttpGet("getByAuthor/{authorId:int}/{uid:int}")]
+        public async Task<ActionResult<List<BlogDto>>> GetBlogsByAuthor(int authorId, int uid)
         {
+            var client = _factory.CreateClient("followerMicroservice");
+
+            using HttpResponseMessage response = await client.GetAsync("followers/followed/" + authorId.ToString() + "/" + uid.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
             var result = _blogService.GetBlogsByAuthor(authorId);
-            return CreateResponse(result);
+            if(Convert.ToBoolean(jsonResponse))
+                return CreateResponse(result);
+            else
+                return StatusCode(403);
         }
 
     }
